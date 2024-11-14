@@ -72,11 +72,15 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 				givenToken := strings.TrimPrefix(authHeader, "Bearer ")
 				var token db.Token
 				// check token in cache
-				cachedTokenBytes, err := m.Cache.Client.Get(r.Context(), "token_"+givenToken).Result()
+				ctxDBToken, spanScopes := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.cache.get_token")
+				cachedTokenBytes, err := m.Cache.Client.Get(ctxDBToken, "token_"+givenToken).Result()
+				spanScopes.End()
 				if err != nil {
 					gandalf_token_cache.WithLabelValues("token", "miss").Inc()
 					// token not in cache, get from db
-					dbtoken, err := m.DB.GetToken(r.Context(), m.DBConn, givenToken)
+					ctx, dbSpan := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.db.get_token")
+					dbtoken, err := m.DB.GetToken(ctx, m.DBConn, givenToken)
+					dbSpan.End()
 					switch err {
 					case nil:
 						token = dbtoken
@@ -89,7 +93,9 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 								Str("middleware", "gandalf").
 								Msg("Failed to marshal token")
 						} else {
-							m.Cache.Client.Set(r.Context(), "token_"+givenToken, buf.Bytes(), time.Hour*1)
+							ctx, span := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.cache.set_token")
+							m.Cache.Client.Set(ctx, "token_"+givenToken, buf.Bytes(), time.Hour*1)
+							span.End()
 						}
 					case pgx.ErrNoRows:
 						log.Error().
@@ -101,6 +107,7 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 					default:
 						log.Error().
 							Err(err).
+							Str("error type", fmt.Sprintf("%T", err)).
 							Msg("Error while getting token")
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte(`{"code": 500, "message": "Error while getting token"}`))
@@ -135,11 +142,15 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 				// get token scopes
 				var scopes []db.Scope
 				// check scopes in cache
-				cachedScopes, err := m.Cache.Client.Get(r.Context(), "token_to_scopes_"+givenToken).Result()
+				ctxScopes, spanScopes := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.cache.get_scopes")
+				cachedScopes, err := m.Cache.Client.Get(ctxScopes, "token_to_scopes_"+givenToken).Result()
+				spanScopes.End()
 				if err != nil {
 					gandalf_token_cache.WithLabelValues("scopes", "miss").Inc()
 					// scopes not in cache, get from db
-					dbTokenScopes, err := m.DB.GetTokenScopes(r.Context(), m.DBConn, token.ID)
+					ctxscopes, spanScopes := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.db.get_token_scopes")
+					dbTokenScopes, err := m.DB.GetTokenScopes(ctxscopes, m.DBConn, token.ID)
+					spanScopes.End()
 					switch err {
 					case nil:
 						scopes = dbTokenScopes
@@ -152,7 +163,9 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 								Str("middleware", "gandalf").
 								Msg("Failed to marshal scopes")
 						} else {
-							m.Cache.Client.Set(r.Context(), "token_to_scopes_"+givenToken, buf.Bytes(), time.Hour*1)
+							ctx, setScopesSpan := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.cache.set_scopes")
+							m.Cache.Client.Set(ctx, "token_to_scopes_"+givenToken, buf.Bytes(), time.Hour*1)
+							setScopesSpan.End()
 						}
 
 					case pgx.ErrNoRows:
@@ -195,11 +208,15 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 				// check user in cache
 				var username string
 				cacheKey := "userid_to_username" + strconv.Itoa(int(token.UserID))
-				cached_username, err := m.Cache.Client.Get(r.Context(), cacheKey).Result()
+				ctx, getUserCacheSpan := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.cache.get_username")
+				cached_username, err := m.Cache.Client.Get(ctx, cacheKey).Result()
+				getUserCacheSpan.End()
 				if err != nil {
 					gandalf_token_cache.WithLabelValues("user", "miss").Inc()
 					// user not in cache, get from db
-					usr, err := m.DB.GetUserByID(r.Context(), m.DBConn, token.UserID)
+					ctx, span := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.db.get_user")
+					usr, err := m.DB.GetUserByID(ctx, m.DBConn, token.UserID)
+					span.End()
 					if err != nil {
 						log.Error().
 							Err(err).
@@ -211,7 +228,9 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 					}
 					username = usr.Username
 					// store it in cache
-					m.Cache.Client.Set(r.Context(), cacheKey, username, time.Minute*10)
+					dbCtx, dbUserSpan := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.cache.set_username")
+					m.Cache.Client.Set(dbCtx, cacheKey, username, time.Minute*10)
+					dbUserSpan.End()
 				} else {
 					gandalf_token_cache.WithLabelValues("user", "hit").Inc()
 					username = cached_username
@@ -231,7 +250,9 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 					return
 				}
 
-				usr, err := m.DB.GetUserByUsername(r.Context(), m.DBConn, username)
+				ctx, dbUsernameSpan := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.db.get_user_by_username")
+				usr, err := m.DB.GetUserByUsername(ctx, m.DBConn, username)
+				dbUsernameSpan.End()
 				switch err {
 				case nil:
 					// exit switch
@@ -273,7 +294,9 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 				// validate every requested scope exists in the DB
 
 				// get user roles from DB
-				roles, err := m.DB.GetUserRoles(r.Context(), m.DBConn, usr.ID)
+				ctx, dbRolesSpan := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.db.get_user_roles")
+				roles, err := m.DB.GetUserRoles(ctx, m.DBConn, usr.ID)
+				dbRolesSpan.End()
 				switch err {
 				case nil:
 					// exit switch
@@ -291,11 +314,13 @@ func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 				allowedScopes := map[string]db.Scope{}
 				for i := range roles {
 					// get role scopes from DB
-					scopes, err := m.DB.ListRoleScopes(r.Context(), m.DBConn, db.ListRoleScopesParams{
+					ctx, dbRoleScopesSpan := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf.db.get_role_scopes")
+					scopes, err := m.DB.ListRoleScopes(ctx, m.DBConn, db.ListRoleScopesParams{
 						ID:     roles[i].ID,
 						Limit:  10000,
 						Offset: 0,
 					})
+					dbRoleScopesSpan.End()
 					switch err {
 					case nil:
 						// exit switch
