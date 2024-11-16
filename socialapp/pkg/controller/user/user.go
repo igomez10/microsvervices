@@ -343,6 +343,8 @@ func (s *UserApiService) UpdateUser(ctx context.Context, existingUsername string
 		}, nil
 	}
 
+	defer tx.Rollback(ctx)
+
 	// get the user to update
 	existingDBUser, err := s.DB.GetUserByUsername(ctx, tx, existingUsername)
 	if err != nil {
@@ -673,7 +675,7 @@ func (s *UserApiService) GetFollowingUsers(ctx context.Context, username string)
 }
 
 func (s *UserApiService) ChangePassword(ctx context.Context, req openapi.ChangePasswordRequest) (openapi.ImplResponse, error) {
-	ctx, span := tracerhelper.GetTracer().Start(ctx, "ChangePassword")
+	ctx, span := tracerhelper.GetTracer().Start(ctx, "user.changePassword")
 	defer span.End()
 	log := contexthelper.GetLoggerInContext(ctx)
 

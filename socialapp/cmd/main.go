@@ -75,6 +75,7 @@ type Configuration struct {
 	// socialappSubdomain := os.Getenv("SOCIALAPP_SUBDOMAIN")
 	urlShortenerSubdomain string
 	socialappSubdomain    string
+	instanceID            string
 }
 
 func main() {
@@ -92,6 +93,7 @@ func main() {
 	socialappSubdomain := flag.String("socialappSubdomain", os.Getenv("SOCIALAPP_SUBDOMAIN"), "Socialapp subdomain")
 	flag.Parse()
 
+	instanceID := uuid.NewString()
 	log.Info().
 		Str("logHost", *logHost).
 		Str("logLevel", *logLevel).
@@ -102,6 +104,7 @@ func main() {
 		Str("agentURL", *urlAgent).
 		Str("urlShortenerSubdomain", *urlShortenerSubdomain).
 		Str("socialappSubdomain", *socialappSubdomain).
+		Str("instanceID", instanceID).
 		Msg("Starting SocialApp")
 
 	// setup retryable http client
@@ -188,7 +191,7 @@ func main() {
 
 	// Connect to database
 	// force creation of 8 connections, one per service
-	connections := CreateDBPools(os.Getenv("DATABASE_URL"), 1)
+	connections := CreateDBPools(os.Getenv("DATABASE_URL"), 5, fmt.Sprintf("%s-%s", *appName, instanceID))
 
 	queries := dbpgx.New()
 	redisOpts, err := redis.ParseURL(os.Getenv("REDIS_URL"))
@@ -254,6 +257,7 @@ func main() {
 		urlService:            urlService,
 		urlShortenerSubdomain: *urlShortenerSubdomain,
 		socialappSubdomain:    *socialappSubdomain,
+		instanceID:            instanceID,
 	}
 
 	// parse agent url
@@ -275,10 +279,9 @@ func run(config Configuration) {
 	zerolog.SetGlobalLevel(config.logLevel)
 	log.Logger = zerolog.New(config.logDestination)
 
-	instanceID := uuid.NewString()
 	log.Logger = log.With().
 		Str("app", config.appName).
-		Str("instance", instanceID).
+		Str("instance", config.instanceID).
 		Timestamp().
 		Caller().
 		Logger()
@@ -300,7 +303,10 @@ func run(config Configuration) {
 		trace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String(config.appName),
-			attribute.KeyValue{Key: attribute.Key("instance_id"), Value: attribute.StringValue(instanceID)},
+			attribute.KeyValue{
+				Key:   attribute.Key("instance_id"),
+				Value: attribute.StringValue(config.instanceID),
+			},
 		// Add more attributes as needed
 		)),
 	)
@@ -555,21 +561,30 @@ func run(config Configuration) {
 
 // CreateDBPools creates a pool of connections to the database, in go's implementation of sql, the sql.DB is a connection pool
 // but we want to manually control the minimum number of connections to the database
-func CreateDBPools(databaseURL string, numPools int) *ForcedConnectionPool {
+func CreateDBPools(databaseURL string, numPools int, applicationName string) *ForcedConnectionPool {
+	config, err := pgxpool.ParseConfig(databaseURL)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to parse database url")
+	}
+
+	config.MinConns = 5
+	// all db connections will have a timeout of 5 seconds
+	config.ConnConfig.ConnectTimeout = 5 * time.Second
+	// set application_name
+	config.ConnConfig.RuntimeParams = map[string]string{
+		"application_name": applicationName,
+	}
+
 	pools := make([]*pgxpool.Pool, 0, numPools)
 	for i := 0; i < numPools; i++ {
-		dbConn, err := pgxpool.New(context.Background(), databaseURL)
+		dbConn, err := pgxpool.NewWithConfig(context.Background(), config)
 		if err != nil {
 			log.Fatal().Err(err)
 		}
-		// defer close connections will be executed calling ForcedConnectionPool.Close()
 
 		if dbConn == nil {
 			log.Fatal().Msg("db is nil")
 		}
-
-		// dbConn.SetMaxOpenConns(10)
-		// dbConn.SetMaxIdleConns(10)
 
 		pingCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()

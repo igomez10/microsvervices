@@ -43,7 +43,6 @@ type Middleware struct {
 }
 
 func (m *Middleware) Authenticate(next http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx, span := tracerhelper.GetTracer().Start(r.Context(), "middleware.gandalf")
 		defer span.End()
