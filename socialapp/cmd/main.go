@@ -567,7 +567,7 @@ func CreateDBPools(databaseURL string, numPools int, applicationName string) *Fo
 		log.Fatal().Err(err).Msg("failed to parse database url")
 	}
 
-	config.MinConns = 5
+	config.MinConns = 3
 	config.ConnConfig.ConnectTimeout = 5 * time.Second
 	config.ConnConfig.RuntimeParams = map[string]string{
 		"application_name": applicationName,
