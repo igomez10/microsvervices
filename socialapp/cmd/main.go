@@ -15,6 +15,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/exaring/otelpgx"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -62,7 +63,7 @@ type Configuration struct {
 	proxyURL            string
 	logLevel            zerolog.Level
 	logDestination      io.Writer
-	dbConnections       *ForcedConnectionPool
+	connections         *ForcedConnectionPool
 	queries             *dbpgx.Queries
 	cache               *cache.Cache
 	propertiesSubdomain *url.URL
@@ -189,23 +190,6 @@ func main() {
 		logDestination = conn
 	}
 
-	// Connect to database
-	// force creation of 8 connections, one per service
-	connections := CreateDBPools(os.Getenv("DATABASE_URL"), 5, fmt.Sprintf("%s-%s", *appName, instanceID))
-
-	queries := dbpgx.New()
-	redisOpts, err := redis.ParseURL(os.Getenv("REDIS_URL"))
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to parse redis url")
-	}
-
-	redisOpts.PoolSize = 10
-	redisOpts.MinIdleConns = 10
-
-	cache := cache.NewCache(cache.CacheConfig{
-		RedisOpts: redisOpts,
-	})
-
 	// parse properties subdomain
 	var propertiesSubdomainURL *url.URL
 	if len(*propertiesSubdomain) != 0 && *propertiesSubdomain != "" {
@@ -242,13 +226,57 @@ func main() {
 		urlService = u
 	}
 
+	queries := dbpgx.New()
+	// setup tracing
+	http.DefaultClient = &http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+
+	ctx := context.Background()
+	exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpointURL(*urlAgent))
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed to create otlp exporter for tracing %q", *urlAgent)
+	}
+	// Create a new tracer provider with a batch span processor and the otlp exporter.
+	tp := trace.NewTracerProvider(
+		trace.WithBatcher(exporter),
+		trace.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(*appName),
+			attribute.KeyValue{
+				Key:   attribute.Key("instance_id"),
+				Value: attribute.StringValue(instanceID),
+			},
+		// Add more attributes as needed
+		)),
+	)
+
+	// Register the tracer provider as the global provider.
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+	// Connect to database
+	// force creation of 8 connections, one per service
+	connections := CreateDBPools(ctx, os.Getenv("DATABASE_URL"), 5, fmt.Sprintf("%s-%s", *appName, instanceID))
+	defer connections.Close()
+	redisOpts, err := redis.ParseURL(os.Getenv("REDIS_URL"))
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to parse redis url")
+	}
+
+	redisOpts.PoolSize = 10
+	redisOpts.MinIdleConns = 10
+
+	cache := cache.NewCache(cache.CacheConfig{
+		RedisOpts: redisOpts,
+	})
 	c := Configuration{
 		appPort:               *appPort,
 		proxyURL:              *proxyURL,
 		logLevel:              parsedLogLevel,
 		logDestination:        logDestination,
 		appName:               *appName,
-		dbConnections:         connections,
+		connections:           connections,
 		queries:               queries,
 		cache:                 cache,
 		propertiesSubdomain:   propertiesSubdomainURL,
@@ -269,12 +297,11 @@ func main() {
 		c.agentURL = u
 	}
 
-	defer connections.Close()
-	run(c)
+	run(ctx, c)
 }
 
-func run(config Configuration) {
-	ctx := context.Background()
+func run(_ context.Context, config Configuration) {
+
 	// Setup logger
 	zerolog.SetGlobalLevel(config.logLevel)
 	log.Logger = zerolog.New(config.logDestination)
@@ -286,35 +313,6 @@ func run(config Configuration) {
 		Caller().
 		Logger()
 
-	// setup tracing
-	http.DefaultClient = &http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
-	}
-
-	agentURL := config.agentURL.String()
-	exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpointURL(agentURL))
-	if err != nil {
-		log.Fatal().Err(err).Msgf("failed to create otlp exporter for tracing %q", config.agentURL.String())
-	}
-
-	// Create a new tracer provider with a batch span processor and the otlp exporter.
-	tp := trace.NewTracerProvider(
-		trace.WithBatcher(exporter),
-		trace.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(config.appName),
-			attribute.KeyValue{
-				Key:   attribute.Key("instance_id"),
-				Value: attribute.StringValue(config.instanceID),
-			},
-		// Add more attributes as needed
-		)),
-	)
-
-	// Register the tracer provider as the global provider.
-	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-
 	// EventRecorder for event sourcing
 	eventRecorder := eventRecorder.EventRecorder{
 		DB: config.queries,
@@ -323,14 +321,14 @@ func run(config Configuration) {
 	// Comment service
 	CommentApiService := &comment.CommentService{
 		DB:     config.queries,
-		DBConn: config.dbConnections.GetPool(),
+		DBConn: config.connections.GetPool(),
 	}
 	CommentApiController := openapi.NewCommentAPIController(CommentApiService)
 
 	// User service
 	UserApiService := &user.UserApiService{
 		DB:            config.queries,
-		DBConn:        config.dbConnections.GetPool(),
+		DBConn:        config.connections.GetPool(),
 		EventRecorder: eventRecorder,
 	}
 	UserApiController := openapi.NewUserAPIController(UserApiService)
@@ -338,21 +336,21 @@ func run(config Configuration) {
 	// Auth service
 	AuthApiService := &authentication.AuthenticationService{
 		DB:     config.queries,
-		DBConn: config.dbConnections.GetPool(),
+		DBConn: config.connections.GetPool(),
 	}
 	AuthApiController := openapi.NewAuthenticationAPIController(AuthApiService)
 
 	// Role service
 	RoleAPIService := &role.RoleApiService{
 		DB:     config.queries,
-		DBConn: config.dbConnections.GetPool(),
+		DBConn: config.connections.GetPool(),
 	}
 	RoleAPIController := openapi.NewRoleAPIController(RoleAPIService)
 
 	// Scope service
 	ScopeAPIService := &scope.ScopeApiService{
 		DB:     config.queries,
-		DBConn: config.dbConnections.GetPool(),
+		DBConn: config.connections.GetPool(),
 	}
 	ScopeAPIController := openapi.NewScopeAPIController(ScopeAPIService)
 
@@ -389,7 +387,7 @@ func run(config Configuration) {
 	}
 	socialappAuthenticationMiddleware := gandalf.Middleware{
 		DB:               config.queries,
-		DBConn:           config.dbConnections.GetPool(),
+		DBConn:           config.connections.GetPool(),
 		Cache:            config.cache,
 		AllowlistedPaths: socialappAllowlistedPaths,
 		AllowBasicAuth:   false,
@@ -413,7 +411,7 @@ func run(config Configuration) {
 	// 1. Kibana router (proxy)
 	kibanaAuthMiddleware := gandalf.Middleware{
 		DB:               config.queries,
-		DBConn:           config.dbConnections.GetPool(),
+		DBConn:           config.connections.GetPool(),
 		Cache:            config.cache,
 		AllowlistedPaths: map[string]map[string]bool{},
 		AllowBasicAuth:   true,
@@ -561,7 +559,7 @@ func run(config Configuration) {
 
 // CreateDBPools creates a pool of connections to the database, in go's implementation of sql, the sql.DB is a connection pool
 // but we want to manually control the minimum number of connections to the database
-func CreateDBPools(databaseURL string, numPools int, applicationName string) *ForcedConnectionPool {
+func CreateDBPools(ctx context.Context, databaseURL string, numPools int, applicationName string) *ForcedConnectionPool {
 	config, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to parse database url")
@@ -573,9 +571,10 @@ func CreateDBPools(databaseURL string, numPools int, applicationName string) *Fo
 		"application_name": applicationName,
 	}
 
+	config.ConnConfig.Tracer = otelpgx.NewTracer(otelpgx.WithTracerProvider(otel.GetTracerProvider()))
 	pools := make([]*pgxpool.Pool, 0, numPools)
 	for i := 0; i < numPools; i++ {
-		dbConn, err := pgxpool.NewWithConfig(context.Background(), config)
+		dbConn, err := pgxpool.NewWithConfig(ctx, config)
 		if err != nil {
 			log.Fatal().Err(err)
 		}
