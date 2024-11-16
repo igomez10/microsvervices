@@ -568,9 +568,7 @@ func CreateDBPools(databaseURL string, numPools int, applicationName string) *Fo
 	}
 
 	config.MinConns = 5
-	// all db connections will have a timeout of 5 seconds
 	config.ConnConfig.ConnectTimeout = 5 * time.Second
-	// set application_name
 	config.ConnConfig.RuntimeParams = map[string]string{
 		"application_name": applicationName,
 	}

@@ -229,6 +229,7 @@ func NewRouter(middlewares []func(http.Handler) http.Handler, routers []server.R
 
 		mdlw := metricsMiddleware.New(metricsMiddleware.Config{
 			Recorder: prometheus.NewRecorder(prometheus.Config{}),
+			Service:  "urlshortener",
 		})
 
 		for _, api := range routers {

@@ -63,6 +63,7 @@ func NewSocialAppRouter(middlewares []func(http.Handler) http.Handler, routers [
 
 		mdlw := metricsMiddleware.New(metricsMiddleware.Config{
 			Recorder: prometheus.NewRecorder(prometheus.Config{}),
+			Service:  "socialapp",
 		})
 
 		for _, api := range routers {
