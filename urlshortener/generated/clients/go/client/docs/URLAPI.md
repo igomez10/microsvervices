@@ -13,7 +13,7 @@ Method | HTTP request | Description
 
 ## CreateUrl
 
-> URL CreateUrl(ctx).URL(uRL).XRequestID(xRequestID).Execute()
+> URL CreateUrl(ctx).URL(uRL).Execute()
 
 Create a new url
 
@@ -33,11 +33,10 @@ import (
 
 func main() {
 	uRL := *openapiclient.NewURL("Url_example", "Alias_example") // URL | Create a new url
-	xRequestID := "xRequestID_example" // string | A unique identifier for the request (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.URLAPI.CreateUrl(context.Background()).URL(uRL).XRequestID(xRequestID).Execute()
+	resp, r, err := apiClient.URLAPI.CreateUrl(context.Background()).URL(uRL).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `URLAPI.CreateUrl``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -59,7 +58,6 @@ Other parameters are passed through a pointer to a apiCreateUrlRequest struct vi
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **uRL** | [**URL**](URL.md) | Create a new url | 
- **xRequestID** | **string** | A unique identifier for the request | 
 
 ### Return type
 

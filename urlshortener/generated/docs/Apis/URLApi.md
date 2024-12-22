@@ -12,7 +12,7 @@ All URIs are relative to *https://urlshortener.gomezignacio.com*
 
 <a name="createUrl"></a>
 # **createUrl**
-> URL createUrl(URL, X-Request-ID)
+> URL createUrl(URL)
 
 Create a new url
 
@@ -23,7 +23,6 @@ Create a new url
 |Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **URL** | [**URL**](../Models/URL.md)| Create a new url | |
-| **X-Request-ID** | **String**| A unique identifier for the request | [optional] [default to null] |
 
 ### Return type
 

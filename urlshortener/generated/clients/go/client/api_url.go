@@ -27,18 +27,11 @@ type ApiCreateUrlRequest struct {
 	ctx        context.Context
 	ApiService *URLAPIService
 	uRL        *URL
-	xRequestID *string
 }
 
 // Create a new url
 func (r ApiCreateUrlRequest) URL(uRL URL) ApiCreateUrlRequest {
 	r.uRL = &uRL
-	return r
-}
-
-// A unique identifier for the request
-func (r ApiCreateUrlRequest) XRequestID(xRequestID string) ApiCreateUrlRequest {
-	r.xRequestID = &xRequestID
 	return r
 }
 
@@ -102,9 +95,6 @@ func (a *URLAPIService) CreateUrlExecute(r ApiCreateUrlRequest) (*URL, *http.Res
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	if r.xRequestID != nil {
-		parameterAddToHeaderOrQuery(localVarHeaderParams, "X-Request-ID", r.xRequestID, "simple", "")
 	}
 	// body params
 	localVarPostBody = r.uRL

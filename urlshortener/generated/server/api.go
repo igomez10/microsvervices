@@ -34,5 +34,5 @@ type URLAPIServicer interface {
 	GetUrl(context.Context, string) (ImplResponse, error)
 	DeleteUrl(context.Context, string) (ImplResponse, error)
 	GetUrlData(context.Context, string) (ImplResponse, error)
-	CreateUrl(context.Context, Url, string) (ImplResponse, error)
+	CreateUrl(context.Context, Url) (ImplResponse, error)
 }

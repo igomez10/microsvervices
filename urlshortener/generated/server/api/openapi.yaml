@@ -119,15 +119,6 @@ paths:
     post:
       description: Returns a url
       operationId: createUrl
-      parameters:
-      - description: A unique identifier for the request
-        explode: false
-        in: header
-        name: X-Request-ID
-        required: false
-        schema:
-          type: string
-        style: simple
       requestBody:
         content:
           application/json:
