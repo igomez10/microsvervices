@@ -10,6 +10,7 @@
 # !
 # ! Based on: https://github.com/Valodim/zsh-curl-completion/blob/master/_curl
 # !
+# ! Generator version: 7.10.0
 # !
 # !
 # ! Installation:
@@ -310,7 +311,8 @@ case $state in
       createUrl)
         local -a _op_arguments
         _op_arguments=(
-                              )
+                              "X-Request-ID\::[HEADER] A unique identifier for the request"
+)
         _describe -t actions 'operations' _op_arguments -S '' && ret=0
         ;;
       deleteUrl)

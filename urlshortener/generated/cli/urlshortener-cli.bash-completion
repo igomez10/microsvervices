@@ -8,6 +8,7 @@
 # ! openapi-generator (https://openapi-generator.tech)
 # ! FROM OPENAPI SPECIFICATION IN JSON.
 # !
+# ! Generator version: 7.10.0
 # !
 # !
 # ! System wide installation:
@@ -76,7 +77,7 @@ _urlshortener-cli()
     # An associative array of operations to their parameters
     # Only include path, query and header parameters
     declare -A operation_parameters
-    operation_parameters["createUrl"]=""
+    operation_parameters["createUrl"]="X-Request-ID: "
     operation_parameters["deleteUrl"]="alias= "
     operation_parameters["getUrl"]="alias= "
     operation_parameters["getUrlData"]="alias= "

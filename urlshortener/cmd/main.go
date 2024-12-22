@@ -106,7 +106,6 @@ func main() {
 
 	// health check
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
 
@@ -161,6 +160,7 @@ func main() {
 		middleware.RequestID,
 		middleware.RealIP,
 		middleware.Recoverer,
+		ObservabilityMiddleware(log.Logger),
 	}
 	urlRouter := NewRouter(middlewares, []server.Router{URLAPIController}, newrelicApp)
 
@@ -175,6 +175,38 @@ type Pattern struct {
 	Pattern string
 }
 
+type customHTTPResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (w *customHTTPResponseWriter) WriteHeader(statusCode int) {
+	w.statusCode = statusCode
+	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+func ObservabilityMiddleware(logger zerolog.Logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			// Add the logger to the context
+			ctx = contexthelper.SetLoggerInContext(ctx, logger)
+			r = r.WithContext(ctx)
+			customW := &customHTTPResponseWriter{w, http.StatusOK}
+			next.ServeHTTP(customW, r)
+			logger.Info().
+				Str("method", r.Method).
+				Int("status_code", customW.statusCode).
+				Str("path", r.URL.Path).
+				Str("remote_addr", r.RemoteAddr).
+				Str("user_agent", r.UserAgent()).
+				Str("referer", r.Referer()).
+				Str("request_id", middleware.GetReqID(r.Context())).
+				Msg("finished request")
+		})
+	}
+}
+
 func NewMetaRouter() chi.Router {
 	mainRouter := chi.NewRouter()
 
@@ -183,7 +215,6 @@ func NewMetaRouter() chi.Router {
 	mainRouter.Group(func(r chi.Router) {
 		// HEALTH
 		r.MethodFunc("GET", "/health", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("OK"))
 		})
 

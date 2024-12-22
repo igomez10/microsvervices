@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   contact:
     email: ignacio.gomez.arboleda@gmail.com
@@ -14,6 +14,7 @@ servers:
 - url: https://urlshortener.gomezignacio.com
 - url: http://localhost:8080
 - url: http://localhost:8087
+- url: http://localhost:8089
 security:
 - OAuth2: []
 tags:
@@ -118,6 +119,15 @@ paths:
     post:
       description: Returns a url
       operationId: createUrl
+      parameters:
+      - description: A unique identifier for the request
+        explode: false
+        in: header
+        name: X-Request-ID
+        required: false
+        schema:
+          type: string
+        style: simple
       requestBody:
         content:
           application/json:
@@ -165,7 +175,6 @@ components:
       required:
       - code
       - message
-      type: object
     URL:
       example:
         alias: example
@@ -191,7 +200,6 @@ components:
       required:
       - alias
       - url
-      type: object
   securitySchemes:
     BasicAuth:
       scheme: basic

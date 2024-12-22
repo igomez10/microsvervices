@@ -1,7 +1,7 @@
 generate-openapi:
 	#  generate server:
 	rm -rf ./generated/server
-	openapi-generator generate -i openapi.yaml  \
+	openapi-generator-cli generate -i openapi.yaml  \
 	-g go-server \
 	-o ./generated/server \
 	-p packageName=server \
@@ -21,7 +21,7 @@ generate-openapi:
 
 	# generate go client
 	rm -rf generated/clients/go/client
-	openapi-generator generate --input-spec openapi.yaml  \
+	openapi-generator-cli generate --input-spec openapi.yaml  \
 		--git-user-id=igomez10 \
 		--git-repo-id=microservices \
         --generator-name go \
@@ -36,13 +36,13 @@ generate-openapi:
 	rm generated/clients/go/client/test/* # remove tests in client sdk
 
 	# generate documentation
-	openapi-generator generate -i openapi.yaml  \
+	openapi-generator-cli generate -i openapi.yaml  \
 	--output generated/docs \
 	--generator-name markdown
 	
 	# generate schema
 	rm -rf mysql-schema
-	openapi-generator generate -i openapi.yaml  \
+	openapi-generator-cli generate -i openapi.yaml  \
 	--generator-name mysql-schema \
 	--output generated/schema \
 	--additional-properties=namedParametersEnabled=true \
@@ -54,7 +54,7 @@ generate-openapi:
 	
 	# generate cli 
 	rm -rf cli
-	openapi-generator generate --input-spec openapi.yaml \
+	openapi-generator-cli generate --input-spec openapi.yaml \
 		--generator-name bash \
         --output generated/cli \
 		--additional-properties=generateZshCompletion=true \
@@ -62,13 +62,13 @@ generate-openapi:
 
 	# generate jmeter
 	rm -rf jmeter
-	openapi-generator generate --input-spec openapi.yaml \
+	openapi-generator-cli generate --input-spec openapi.yaml \
 		--generator-name jmeter \
 		--output generated/jmeter
 
 	# generate postman collection
 	rm -rf postman
-	openapi-generator generate --input-spec openapi.yaml \
+	openapi-generator-cli generate --input-spec openapi.yaml \
 		--generator-name postman-collection \
 		--output generated/postman
 
