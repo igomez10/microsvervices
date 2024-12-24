@@ -77,12 +77,15 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, reques
 
 		// other error
 		event.IsErr = true
+		log := contexthelper.GetLoggerInContext(ctx)
+		log.Error().Err(err).Msgf("error creating url %q with alias %q", newURL.Url, newURL.Alias)
 		return server.ImplResponse{
 			Code: http.StatusInternalServerError,
 			Body: server.Error{
 				Message: fmt.Sprintf("error creating url %q with alias %q", newURL.Url, newURL.Alias),
+				Code:    http.StatusInternalServerError,
 			},
-		}, err
+		}, nil
 	}
 
 	serverURL := converter.FromDBUrlToAPIUrl(res)
