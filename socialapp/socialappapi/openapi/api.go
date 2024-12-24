@@ -27,9 +27,9 @@ type AuthenticationAPIRouter interface {
 // The CommentAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a CommentAPIServicer to perform the required actions, then write the service results to the http response.
 type CommentAPIRouter interface {
-	CreateComment(http.ResponseWriter, *http.Request)
-	GetComment(http.ResponseWriter, *http.Request)
 	GetUserFeed(http.ResponseWriter, *http.Request)
+	GetComment(http.ResponseWriter, *http.Request)
+	CreateComment(http.ResponseWriter, *http.Request)
 }
 
 // FollowingAPIRouter defines the required methods for binding the api requests to a responses for the FollowingAPI
@@ -43,56 +43,56 @@ type FollowingAPIRouter interface {
 // The RoleAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a RoleAPIServicer to perform the required actions, then write the service results to the http response.
 type RoleAPIRouter interface {
-	AddScopeToRole(http.ResponseWriter, *http.Request)
-	CreateRole(http.ResponseWriter, *http.Request)
-	DeleteRole(http.ResponseWriter, *http.Request)
-	GetRole(http.ResponseWriter, *http.Request)
 	ListRoles(http.ResponseWriter, *http.Request)
-	ListScopesForRole(http.ResponseWriter, *http.Request)
-	RemoveScopeFromRole(http.ResponseWriter, *http.Request)
+	CreateRole(http.ResponseWriter, *http.Request)
+	GetRole(http.ResponseWriter, *http.Request)
 	UpdateRole(http.ResponseWriter, *http.Request)
+	DeleteRole(http.ResponseWriter, *http.Request)
+	ListScopesForRole(http.ResponseWriter, *http.Request)
+	AddScopeToRole(http.ResponseWriter, *http.Request)
+	RemoveScopeFromRole(http.ResponseWriter, *http.Request)
 }
 
 // ScopeAPIRouter defines the required methods for binding the api requests to a responses for the ScopeAPI
 // The ScopeAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a ScopeAPIServicer to perform the required actions, then write the service results to the http response.
 type ScopeAPIRouter interface {
-	CreateScope(http.ResponseWriter, *http.Request)
-	DeleteScope(http.ResponseWriter, *http.Request)
-	GetScope(http.ResponseWriter, *http.Request)
 	ListScopes(http.ResponseWriter, *http.Request)
+	CreateScope(http.ResponseWriter, *http.Request)
+	GetScope(http.ResponseWriter, *http.Request)
 	UpdateScope(http.ResponseWriter, *http.Request)
+	DeleteScope(http.ResponseWriter, *http.Request)
 }
 
 // URLAPIRouter defines the required methods for binding the api requests to a responses for the URLAPI
 // The URLAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a URLAPIServicer to perform the required actions, then write the service results to the http response.
 type URLAPIRouter interface {
-	CreateUrl(http.ResponseWriter, *http.Request)
-	DeleteUrl(http.ResponseWriter, *http.Request)
 	GetUrl(http.ResponseWriter, *http.Request)
+	DeleteUrl(http.ResponseWriter, *http.Request)
 	GetUrlData(http.ResponseWriter, *http.Request)
+	CreateUrl(http.ResponseWriter, *http.Request)
 }
 
 // UserAPIRouter defines the required methods for binding the api requests to a responses for the UserAPI
 // The UserAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a UserAPIServicer to perform the required actions, then write the service results to the http response.
 type UserAPIRouter interface {
-	ChangePassword(http.ResponseWriter, *http.Request)
+	Welcome(http.ResponseWriter, *http.Request)
+	ListUsers(http.ResponseWriter, *http.Request)
 	CreateUser(http.ResponseWriter, *http.Request)
-	DeleteUser(http.ResponseWriter, *http.Request)
-	FollowUser(http.ResponseWriter, *http.Request)
-	GetFollowingUsers(http.ResponseWriter, *http.Request)
-	GetRolesForUser(http.ResponseWriter, *http.Request)
-	GetUserByUsername(http.ResponseWriter, *http.Request)
+	ResetPassword(http.ResponseWriter, *http.Request)
+	ChangePassword(http.ResponseWriter, *http.Request)
 	GetUserComments(http.ResponseWriter, *http.Request)
 	GetUserFollowers(http.ResponseWriter, *http.Request)
-	ListUsers(http.ResponseWriter, *http.Request)
-	ResetPassword(http.ResponseWriter, *http.Request)
+	GetFollowingUsers(http.ResponseWriter, *http.Request)
+	FollowUser(http.ResponseWriter, *http.Request)
 	UnfollowUser(http.ResponseWriter, *http.Request)
-	UpdateRolesForUser(http.ResponseWriter, *http.Request)
+	GetUserByUsername(http.ResponseWriter, *http.Request)
 	UpdateUser(http.ResponseWriter, *http.Request)
-	Welcome(http.ResponseWriter, *http.Request)
+	DeleteUser(http.ResponseWriter, *http.Request)
+	GetRolesForUser(http.ResponseWriter, *http.Request)
+	UpdateRolesForUser(http.ResponseWriter, *http.Request)
 }
 
 // AuthenticationAPIServicer defines the api actions for the AuthenticationAPI service
@@ -108,9 +108,9 @@ type AuthenticationAPIServicer interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type CommentAPIServicer interface {
-	CreateComment(context.Context, Comment) (ImplResponse, error)
-	GetComment(context.Context, int32) (ImplResponse, error)
 	GetUserFeed(context.Context) (ImplResponse, error)
+	GetComment(context.Context, int32) (ImplResponse, error)
+	CreateComment(context.Context, Comment) (ImplResponse, error)
 }
 
 // FollowingAPIServicer defines the api actions for the FollowingAPI service
@@ -126,14 +126,14 @@ type FollowingAPIServicer interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type RoleAPIServicer interface {
-	AddScopeToRole(context.Context, int32, []string) (ImplResponse, error)
-	CreateRole(context.Context, Role) (ImplResponse, error)
-	DeleteRole(context.Context, int32) (ImplResponse, error)
-	GetRole(context.Context, int32) (ImplResponse, error)
 	ListRoles(context.Context, int32, int32) (ImplResponse, error)
-	ListScopesForRole(context.Context, int32, int32, int32) (ImplResponse, error)
-	RemoveScopeFromRole(context.Context, int32, int32) (ImplResponse, error)
+	CreateRole(context.Context, Role) (ImplResponse, error)
+	GetRole(context.Context, int32) (ImplResponse, error)
 	UpdateRole(context.Context, int32, Role) (ImplResponse, error)
+	DeleteRole(context.Context, int32) (ImplResponse, error)
+	ListScopesForRole(context.Context, int32, int32, int32) (ImplResponse, error)
+	AddScopeToRole(context.Context, int32, []string) (ImplResponse, error)
+	RemoveScopeFromRole(context.Context, int32, int32) (ImplResponse, error)
 }
 
 // ScopeAPIServicer defines the api actions for the ScopeAPI service
@@ -141,11 +141,11 @@ type RoleAPIServicer interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type ScopeAPIServicer interface {
-	CreateScope(context.Context, Scope) (ImplResponse, error)
-	DeleteScope(context.Context, int32) (ImplResponse, error)
-	GetScope(context.Context, int32) (ImplResponse, error)
 	ListScopes(context.Context, int32, int32) (ImplResponse, error)
+	CreateScope(context.Context, Scope) (ImplResponse, error)
+	GetScope(context.Context, int32) (ImplResponse, error)
 	UpdateScope(context.Context, int32, Scope) (ImplResponse, error)
+	DeleteScope(context.Context, int32) (ImplResponse, error)
 }
 
 // URLAPIServicer defines the api actions for the URLAPI service
@@ -153,10 +153,10 @@ type ScopeAPIServicer interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type URLAPIServicer interface {
-	CreateUrl(context.Context, Url) (ImplResponse, error)
-	DeleteUrl(context.Context, string) (ImplResponse, error)
 	GetUrl(context.Context, string) (ImplResponse, error)
+	DeleteUrl(context.Context, string) (ImplResponse, error)
 	GetUrlData(context.Context, string) (ImplResponse, error)
+	CreateUrl(context.Context, Url) (ImplResponse, error)
 }
 
 // UserAPIServicer defines the api actions for the UserAPI service
@@ -164,19 +164,19 @@ type URLAPIServicer interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type UserAPIServicer interface {
-	ChangePassword(context.Context, ChangePasswordRequest) (ImplResponse, error)
+	Welcome(context.Context) (ImplResponse, error)
+	ListUsers(context.Context, int32, int32) (ImplResponse, error)
 	CreateUser(context.Context, CreateUserRequest) (ImplResponse, error)
-	DeleteUser(context.Context, string) (ImplResponse, error)
-	FollowUser(context.Context, string, string) (ImplResponse, error)
-	GetFollowingUsers(context.Context, string) (ImplResponse, error)
-	GetRolesForUser(context.Context, string) (ImplResponse, error)
-	GetUserByUsername(context.Context, string) (ImplResponse, error)
+	ResetPassword(context.Context, ResetPasswordRequest) (ImplResponse, error)
+	ChangePassword(context.Context, ChangePasswordRequest) (ImplResponse, error)
 	GetUserComments(context.Context, string, int32, int32) (ImplResponse, error)
 	GetUserFollowers(context.Context, string) (ImplResponse, error)
-	ListUsers(context.Context, int32, int32) (ImplResponse, error)
-	ResetPassword(context.Context, ResetPasswordRequest) (ImplResponse, error)
+	GetFollowingUsers(context.Context, string) (ImplResponse, error)
+	FollowUser(context.Context, string, string) (ImplResponse, error)
 	UnfollowUser(context.Context, string, string) (ImplResponse, error)
-	UpdateRolesForUser(context.Context, string, []string) (ImplResponse, error)
+	GetUserByUsername(context.Context, string) (ImplResponse, error)
 	UpdateUser(context.Context, string, User) (ImplResponse, error)
-	Welcome(context.Context) (ImplResponse, error)
+	DeleteUser(context.Context, string) (ImplResponse, error)
+	GetRolesForUser(context.Context, string) (ImplResponse, error)
+	UpdateRolesForUser(context.Context, string, []string) (ImplResponse, error)
 }

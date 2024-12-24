@@ -54,40 +54,30 @@ func NewUserAPIController(s UserAPIServicer, opts ...UserAPIOption) *UserAPICont
 // Routes returns all the api routes for the UserAPIController
 func (c *UserAPIController) Routes() Routes {
 	return Routes{
-		"ChangePassword": Route{
-			strings.ToUpper("Post"),
-			"/v1/password",
-			c.ChangePassword,
+		"Welcome": Route{
+			strings.ToUpper("Get"),
+			"/",
+			c.Welcome,
+		},
+		"ListUsers": Route{
+			strings.ToUpper("Get"),
+			"/v1/users",
+			c.ListUsers,
 		},
 		"CreateUser": Route{
 			strings.ToUpper("Post"),
 			"/v1/users",
 			c.CreateUser,
 		},
-		"DeleteUser": Route{
-			strings.ToUpper("Delete"),
-			"/v1/users/{username}",
-			c.DeleteUser,
+		"ResetPassword": Route{
+			strings.ToUpper("Put"),
+			"/v1/password",
+			c.ResetPassword,
 		},
-		"FollowUser": Route{
+		"ChangePassword": Route{
 			strings.ToUpper("Post"),
-			"/v1/users/{followedUsername}/followers/{followerUsername}",
-			c.FollowUser,
-		},
-		"GetFollowingUsers": Route{
-			strings.ToUpper("Get"),
-			"/v1/users/{username}/following",
-			c.GetFollowingUsers,
-		},
-		"GetRolesForUser": Route{
-			strings.ToUpper("Get"),
-			"/v1/users/{username}/roles",
-			c.GetRolesForUser,
-		},
-		"GetUserByUsername": Route{
-			strings.ToUpper("Get"),
-			"/v1/users/{username}",
-			c.GetUserByUsername,
+			"/v1/password",
+			c.ChangePassword,
 		},
 		"GetUserComments": Route{
 			strings.ToUpper("Get"),
@@ -99,57 +89,103 @@ func (c *UserAPIController) Routes() Routes {
 			"/v1/users/{username}/followers",
 			c.GetUserFollowers,
 		},
-		"ListUsers": Route{
+		"GetFollowingUsers": Route{
 			strings.ToUpper("Get"),
-			"/v1/users",
-			c.ListUsers,
+			"/v1/users/{username}/following",
+			c.GetFollowingUsers,
 		},
-		"ResetPassword": Route{
-			strings.ToUpper("Put"),
-			"/v1/password",
-			c.ResetPassword,
+		"FollowUser": Route{
+			strings.ToUpper("Post"),
+			"/v1/users/{followedUsername}/followers/{followerUsername}",
+			c.FollowUser,
 		},
 		"UnfollowUser": Route{
 			strings.ToUpper("Delete"),
 			"/v1/users/{followedUsername}/followers/{followerUsername}",
 			c.UnfollowUser,
 		},
-		"UpdateRolesForUser": Route{
-			strings.ToUpper("Put"),
-			"/v1/users/{username}/roles",
-			c.UpdateRolesForUser,
+		"GetUserByUsername": Route{
+			strings.ToUpper("Get"),
+			"/v1/users/{username}",
+			c.GetUserByUsername,
 		},
 		"UpdateUser": Route{
 			strings.ToUpper("Put"),
 			"/v1/users/{username}",
 			c.UpdateUser,
 		},
-		"Welcome": Route{
+		"DeleteUser": Route{
+			strings.ToUpper("Delete"),
+			"/v1/users/{username}",
+			c.DeleteUser,
+		},
+		"GetRolesForUser": Route{
 			strings.ToUpper("Get"),
-			"/",
-			c.Welcome,
+			"/v1/users/{username}/roles",
+			c.GetRolesForUser,
+		},
+		"UpdateRolesForUser": Route{
+			strings.ToUpper("Put"),
+			"/v1/users/{username}/roles",
+			c.UpdateRolesForUser,
 		},
 	}
 }
 
-// ChangePassword - Change password
-func (c *UserAPIController) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	changePasswordRequestParam := ChangePasswordRequest{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&changePasswordRequestParam); err != nil {
+// Welcome - Welcome to the Socialapp API
+func (c *UserAPIController) Welcome(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.Welcome(r.Context())
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
+// ListUsers - List users
+func (c *UserAPIController) ListUsers(w http.ResponseWriter, r *http.Request) {
+	query, err := parseQuery(r.URL.RawQuery)
+	if err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertChangePasswordRequestRequired(changePasswordRequestParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
+	var limitParam int32
+	if query.Has("limit") {
+		param, err := parseNumericParameter[int32](
+			query.Get("limit"),
+			WithParse[int32](parseInt32),
+			WithMinimum[int32](1),
+			WithMaximum[int32](100),
+		)
+		if err != nil {
+			c.errorHandler(w, r, &ParsingError{Param: "limit", Err: err}, nil)
+			return
+		}
+
+		limitParam = param
+	} else {
+		var param int32 = 20
+		limitParam = param
 	}
-	if err := AssertChangePasswordRequestConstraints(changePasswordRequestParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
+	var offsetParam int32
+	if query.Has("offset") {
+		param, err := parseNumericParameter[int32](
+			query.Get("offset"),
+			WithParse[int32](parseInt32),
+		)
+		if err != nil {
+			c.errorHandler(w, r, &ParsingError{Param: "offset", Err: err}, nil)
+			return
+		}
+
+		offsetParam = param
+	} else {
+		var param int32 = 0
+		offsetParam = param
 	}
-	result, err := c.service.ChangePassword(r.Context(), changePasswordRequestParam)
+	result, err := c.service.ListUsers(r.Context(), limitParam, offsetParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -186,14 +222,24 @@ func (c *UserAPIController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
-// DeleteUser - Deletes a particular user
-func (c *UserAPIController) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	usernameParam := chi.URLParam(r, "username")
-	if usernameParam == "" {
-		c.errorHandler(w, r, &RequiredError{"username"}, nil)
+// ResetPassword - Reset password
+func (c *UserAPIController) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	resetPasswordRequestParam := ResetPasswordRequest{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&resetPasswordRequestParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	result, err := c.service.DeleteUser(r.Context(), usernameParam)
+	if err := AssertResetPasswordRequestRequired(resetPasswordRequestParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertResetPasswordRequestConstraints(resetPasswordRequestParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.ResetPassword(r.Context(), resetPasswordRequestParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -203,70 +249,24 @@ func (c *UserAPIController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
-// FollowUser - Add a user as a follower
-func (c *UserAPIController) FollowUser(w http.ResponseWriter, r *http.Request) {
-	followedUsernameParam := chi.URLParam(r, "followedUsername")
-	if followedUsernameParam == "" {
-		c.errorHandler(w, r, &RequiredError{"followedUsername"}, nil)
+// ChangePassword - Change password
+func (c *UserAPIController) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	changePasswordRequestParam := ChangePasswordRequest{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&changePasswordRequestParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	followerUsernameParam := chi.URLParam(r, "followerUsername")
-	if followerUsernameParam == "" {
-		c.errorHandler(w, r, &RequiredError{"followerUsername"}, nil)
+	if err := AssertChangePasswordRequestRequired(changePasswordRequestParam); err != nil {
+		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.FollowUser(r.Context(), followedUsernameParam, followerUsernameParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
+	if err := AssertChangePasswordRequestConstraints(changePasswordRequestParam); err != nil {
+		c.errorHandler(w, r, err, nil)
 		return
 	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-}
-
-// GetFollowingUsers - Get all followed users for a user
-func (c *UserAPIController) GetFollowingUsers(w http.ResponseWriter, r *http.Request) {
-	usernameParam := chi.URLParam(r, "username")
-	if usernameParam == "" {
-		c.errorHandler(w, r, &RequiredError{"username"}, nil)
-		return
-	}
-	result, err := c.service.GetFollowingUsers(r.Context(), usernameParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-}
-
-// GetRolesForUser - Get all roles for a user
-func (c *UserAPIController) GetRolesForUser(w http.ResponseWriter, r *http.Request) {
-	usernameParam := chi.URLParam(r, "username")
-	if usernameParam == "" {
-		c.errorHandler(w, r, &RequiredError{"username"}, nil)
-		return
-	}
-	result, err := c.service.GetRolesForUser(r.Context(), usernameParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-}
-
-// GetUserByUsername - Get a particular user by username
-func (c *UserAPIController) GetUserByUsername(w http.ResponseWriter, r *http.Request) {
-	usernameParam := chi.URLParam(r, "username")
-	if usernameParam == "" {
-		c.errorHandler(w, r, &RequiredError{"username"}, nil)
-		return
-	}
-	result, err := c.service.GetUserByUsername(r.Context(), usernameParam)
+	result, err := c.service.ChangePassword(r.Context(), changePasswordRequestParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -347,48 +347,14 @@ func (c *UserAPIController) GetUserFollowers(w http.ResponseWriter, r *http.Requ
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
-// ListUsers - List users
-func (c *UserAPIController) ListUsers(w http.ResponseWriter, r *http.Request) {
-	query, err := parseQuery(r.URL.RawQuery)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+// GetFollowingUsers - Get all followed users for a user
+func (c *UserAPIController) GetFollowingUsers(w http.ResponseWriter, r *http.Request) {
+	usernameParam := chi.URLParam(r, "username")
+	if usernameParam == "" {
+		c.errorHandler(w, r, &RequiredError{"username"}, nil)
 		return
 	}
-	var limitParam int32
-	if query.Has("limit") {
-		param, err := parseNumericParameter[int32](
-			query.Get("limit"),
-			WithParse[int32](parseInt32),
-			WithMinimum[int32](1),
-			WithMaximum[int32](100),
-		)
-		if err != nil {
-			c.errorHandler(w, r, &ParsingError{Param: "limit", Err: err}, nil)
-			return
-		}
-
-		limitParam = param
-	} else {
-		var param int32 = 20
-		limitParam = param
-	}
-	var offsetParam int32
-	if query.Has("offset") {
-		param, err := parseNumericParameter[int32](
-			query.Get("offset"),
-			WithParse[int32](parseInt32),
-		)
-		if err != nil {
-			c.errorHandler(w, r, &ParsingError{Param: "offset", Err: err}, nil)
-			return
-		}
-
-		offsetParam = param
-	} else {
-		var param int32 = 0
-		offsetParam = param
-	}
-	result, err := c.service.ListUsers(r.Context(), limitParam, offsetParam)
+	result, err := c.service.GetFollowingUsers(r.Context(), usernameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -398,24 +364,19 @@ func (c *UserAPIController) ListUsers(w http.ResponseWriter, r *http.Request) {
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
-// ResetPassword - Reset password
-func (c *UserAPIController) ResetPassword(w http.ResponseWriter, r *http.Request) {
-	resetPasswordRequestParam := ResetPasswordRequest{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&resetPasswordRequestParam); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+// FollowUser - Add a user as a follower
+func (c *UserAPIController) FollowUser(w http.ResponseWriter, r *http.Request) {
+	followedUsernameParam := chi.URLParam(r, "followedUsername")
+	if followedUsernameParam == "" {
+		c.errorHandler(w, r, &RequiredError{"followedUsername"}, nil)
 		return
 	}
-	if err := AssertResetPasswordRequestRequired(resetPasswordRequestParam); err != nil {
-		c.errorHandler(w, r, err, nil)
+	followerUsernameParam := chi.URLParam(r, "followerUsername")
+	if followerUsernameParam == "" {
+		c.errorHandler(w, r, &RequiredError{"followerUsername"}, nil)
 		return
 	}
-	if err := AssertResetPasswordRequestConstraints(resetPasswordRequestParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.ResetPassword(r.Context(), resetPasswordRequestParam)
+	result, err := c.service.FollowUser(r.Context(), followedUsernameParam, followerUsernameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -447,21 +408,14 @@ func (c *UserAPIController) UnfollowUser(w http.ResponseWriter, r *http.Request)
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
-// UpdateRolesForUser - Update all roles for a user
-func (c *UserAPIController) UpdateRolesForUser(w http.ResponseWriter, r *http.Request) {
+// GetUserByUsername - Get a particular user by username
+func (c *UserAPIController) GetUserByUsername(w http.ResponseWriter, r *http.Request) {
 	usernameParam := chi.URLParam(r, "username")
 	if usernameParam == "" {
 		c.errorHandler(w, r, &RequiredError{"username"}, nil)
 		return
 	}
-	requestBodyParam := []string{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&requestBodyParam); err != nil && !errors.Is(err, io.EOF) {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	result, err := c.service.UpdateRolesForUser(r.Context(), usernameParam, requestBodyParam)
+	result, err := c.service.GetUserByUsername(r.Context(), usernameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -503,9 +457,55 @@ func (c *UserAPIController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
-// Welcome - Welcome to the Socialapp API
-func (c *UserAPIController) Welcome(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.Welcome(r.Context())
+// DeleteUser - Deletes a particular user
+func (c *UserAPIController) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	usernameParam := chi.URLParam(r, "username")
+	if usernameParam == "" {
+		c.errorHandler(w, r, &RequiredError{"username"}, nil)
+		return
+	}
+	result, err := c.service.DeleteUser(r.Context(), usernameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
+// GetRolesForUser - Get all roles for a user
+func (c *UserAPIController) GetRolesForUser(w http.ResponseWriter, r *http.Request) {
+	usernameParam := chi.URLParam(r, "username")
+	if usernameParam == "" {
+		c.errorHandler(w, r, &RequiredError{"username"}, nil)
+		return
+	}
+	result, err := c.service.GetRolesForUser(r.Context(), usernameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
+// UpdateRolesForUser - Update all roles for a user
+func (c *UserAPIController) UpdateRolesForUser(w http.ResponseWriter, r *http.Request) {
+	usernameParam := chi.URLParam(r, "username")
+	if usernameParam == "" {
+		c.errorHandler(w, r, &RequiredError{"username"}, nil)
+		return
+	}
+	requestBodyParam := []string{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&requestBodyParam); err != nil && !errors.Is(err, io.EOF) {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	result, err := c.service.UpdateRolesForUser(r.Context(), usernameParam, requestBodyParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

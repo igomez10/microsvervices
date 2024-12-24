@@ -35,6 +35,7 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL openapi.Url) (open
 	newURLRequest := urlClient.NewURL(newURL.Url, newURL.Alias)
 	u, createRes, err := s.Client.URLAPI.CreateUrl(ctx).
 		URL(*newURLRequest).
+		XRequestID(contexthelper.GetRequestIDInContext(ctx)).
 		Execute()
 	if err != nil {
 		log.Error().Err(err).Msgf("unexpected error creating url %q with alias %q", newURL.Url, newURL.Alias)

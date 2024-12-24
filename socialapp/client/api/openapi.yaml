@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   contact:
     email: ignacio.gomez.arboleda@gmail.com
@@ -1563,7 +1563,6 @@ components:
       - last_name
       - password
       - username
-      type: object
     CreateUserResponse:
       example:
         id: 1
@@ -1621,7 +1620,6 @@ components:
       - first_name
       - last_name
       - username
-      type: object
     Comment:
       example:
         content: This is a comment
@@ -1643,7 +1641,6 @@ components:
       required:
       - content
       - username
-      type: object
     AccessToken:
       example:
         access_token: 123token123
@@ -1664,7 +1661,6 @@ components:
       - access_token
       - expires_in
       - token_type
-      type: object
     Error:
       example:
         code: 404
@@ -1678,7 +1674,6 @@ components:
       required:
       - code
       - message
-      type: object
     ChangePasswordRequest:
       example:
         old_password: Secure123!
@@ -1691,7 +1686,6 @@ components:
       required:
       - new_password
       - old_password
-      type: object
     ResetPasswordRequest:
       example:
         email: jhon@doe.com
@@ -1700,7 +1694,6 @@ components:
           type: string
       required:
       - email
-      type: object
     Role:
       example:
         name: admin
@@ -1718,7 +1711,6 @@ components:
           type: string
       required:
       - name
-      type: object
     Scope:
       example:
         name: socialapp.roles.read
@@ -1738,7 +1730,6 @@ components:
       required:
       - description
       - name
-      type: object
     URL:
       example:
         alias: example
@@ -1764,7 +1755,6 @@ components:
       required:
       - alias
       - url
-      type: object
   securitySchemes:
     BasicAuth:
       scheme: basic

@@ -52,42 +52,27 @@ func NewCommentAPIController(s CommentAPIServicer, opts ...CommentAPIOption) *Co
 // Routes returns all the api routes for the CommentAPIController
 func (c *CommentAPIController) Routes() Routes {
 	return Routes{
-		"CreateComment": Route{
-			strings.ToUpper("Post"),
-			"/v1/comments",
-			c.CreateComment,
+		"GetUserFeed": Route{
+			strings.ToUpper("Get"),
+			"/v1/feed",
+			c.GetUserFeed,
 		},
 		"GetComment": Route{
 			strings.ToUpper("Get"),
 			"/v1/comments/{id}",
 			c.GetComment,
 		},
-		"GetUserFeed": Route{
-			strings.ToUpper("Get"),
-			"/v1/feed",
-			c.GetUserFeed,
+		"CreateComment": Route{
+			strings.ToUpper("Post"),
+			"/v1/comments",
+			c.CreateComment,
 		},
 	}
 }
 
-// CreateComment - Create a new comment
-func (c *CommentAPIController) CreateComment(w http.ResponseWriter, r *http.Request) {
-	commentParam := Comment{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&commentParam); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	if err := AssertCommentRequired(commentParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertCommentConstraints(commentParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.CreateComment(r.Context(), commentParam)
+// GetUserFeed - Returns a users feed
+func (c *CommentAPIController) GetUserFeed(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.GetUserFeed(r.Context())
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -117,9 +102,24 @@ func (c *CommentAPIController) GetComment(w http.ResponseWriter, r *http.Request
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
-// GetUserFeed - Returns a users feed
-func (c *CommentAPIController) GetUserFeed(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.GetUserFeed(r.Context())
+// CreateComment - Create a new comment
+func (c *CommentAPIController) CreateComment(w http.ResponseWriter, r *http.Request) {
+	commentParam := Comment{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&commentParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertCommentRequired(commentParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertCommentConstraints(commentParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.CreateComment(r.Context(), commentParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

@@ -54,99 +54,32 @@ func NewScopeAPIController(s ScopeAPIServicer, opts ...ScopeAPIOption) *ScopeAPI
 // Routes returns all the api routes for the ScopeAPIController
 func (c *ScopeAPIController) Routes() Routes {
 	return Routes{
+		"ListScopes": Route{
+			strings.ToUpper("Get"),
+			"/v1/scopes",
+			c.ListScopes,
+		},
 		"CreateScope": Route{
 			strings.ToUpper("Post"),
 			"/v1/scopes",
 			c.CreateScope,
-		},
-		"DeleteScope": Route{
-			strings.ToUpper("Delete"),
-			"/v1/scopes/{id}",
-			c.DeleteScope,
 		},
 		"GetScope": Route{
 			strings.ToUpper("Get"),
 			"/v1/scopes/{id}",
 			c.GetScope,
 		},
-		"ListScopes": Route{
-			strings.ToUpper("Get"),
-			"/v1/scopes",
-			c.ListScopes,
-		},
 		"UpdateScope": Route{
 			strings.ToUpper("Put"),
 			"/v1/scopes/{id}",
 			c.UpdateScope,
 		},
+		"DeleteScope": Route{
+			strings.ToUpper("Delete"),
+			"/v1/scopes/{id}",
+			c.DeleteScope,
+		},
 	}
-}
-
-// CreateScope - Create a new scope
-func (c *ScopeAPIController) CreateScope(w http.ResponseWriter, r *http.Request) {
-	scopeParam := Scope{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&scopeParam); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	if err := AssertScopeRequired(scopeParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertScopeConstraints(scopeParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.CreateScope(r.Context(), scopeParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-}
-
-// DeleteScope - Delete a scope
-func (c *ScopeAPIController) DeleteScope(w http.ResponseWriter, r *http.Request) {
-	idParam, err := parseNumericParameter[int32](
-		chi.URLParam(r, "id"),
-		WithRequire[int32](parseInt32),
-	)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
-		return
-	}
-	result, err := c.service.DeleteScope(r.Context(), idParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-}
-
-// GetScope - Returns a scope
-func (c *ScopeAPIController) GetScope(w http.ResponseWriter, r *http.Request) {
-	idParam, err := parseNumericParameter[int32](
-		chi.URLParam(r, "id"),
-		WithRequire[int32](parseInt32),
-	)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
-		return
-	}
-	result, err := c.service.GetScope(r.Context(), idParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
 // ListScopes - Returns a list of scopes
@@ -198,6 +131,53 @@ func (c *ScopeAPIController) ListScopes(w http.ResponseWriter, r *http.Request) 
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
+// CreateScope - Create a new scope
+func (c *ScopeAPIController) CreateScope(w http.ResponseWriter, r *http.Request) {
+	scopeParam := Scope{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&scopeParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertScopeRequired(scopeParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertScopeConstraints(scopeParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.CreateScope(r.Context(), scopeParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
+// GetScope - Returns a scope
+func (c *ScopeAPIController) GetScope(w http.ResponseWriter, r *http.Request) {
+	idParam, err := parseNumericParameter[int32](
+		chi.URLParam(r, "id"),
+		WithRequire[int32](parseInt32),
+	)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
+		return
+	}
+	result, err := c.service.GetScope(r.Context(), idParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
 // UpdateScope - Update a scope
 func (c *ScopeAPIController) UpdateScope(w http.ResponseWriter, r *http.Request) {
 	idParam, err := parseNumericParameter[int32](
@@ -224,6 +204,26 @@ func (c *ScopeAPIController) UpdateScope(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	result, err := c.service.UpdateScope(r.Context(), idParam, scopeParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
+// DeleteScope - Delete a scope
+func (c *ScopeAPIController) DeleteScope(w http.ResponseWriter, r *http.Request) {
+	idParam, err := parseNumericParameter[int32](
+		chi.URLParam(r, "id"),
+		WithRequire[int32](parseInt32),
+	)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
+		return
+	}
+	result, err := c.service.DeleteScope(r.Context(), idParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

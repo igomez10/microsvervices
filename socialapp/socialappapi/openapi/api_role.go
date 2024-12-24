@@ -54,141 +54,47 @@ func NewRoleAPIController(s RoleAPIServicer, opts ...RoleAPIOption) *RoleAPICont
 // Routes returns all the api routes for the RoleAPIController
 func (c *RoleAPIController) Routes() Routes {
 	return Routes{
-		"AddScopeToRole": Route{
-			strings.ToUpper("Post"),
-			"/v1/roles/{id}/scopes",
-			c.AddScopeToRole,
+		"ListRoles": Route{
+			strings.ToUpper("Get"),
+			"/v1/roles",
+			c.ListRoles,
 		},
 		"CreateRole": Route{
 			strings.ToUpper("Post"),
 			"/v1/roles",
 			c.CreateRole,
 		},
-		"DeleteRole": Route{
-			strings.ToUpper("Delete"),
-			"/v1/roles/{id}",
-			c.DeleteRole,
-		},
 		"GetRole": Route{
 			strings.ToUpper("Get"),
 			"/v1/roles/{id}",
 			c.GetRole,
-		},
-		"ListRoles": Route{
-			strings.ToUpper("Get"),
-			"/v1/roles",
-			c.ListRoles,
-		},
-		"ListScopesForRole": Route{
-			strings.ToUpper("Get"),
-			"/v1/roles/{id}/scopes",
-			c.ListScopesForRole,
-		},
-		"RemoveScopeFromRole": Route{
-			strings.ToUpper("Delete"),
-			"/v1/roles/{role_id}/scopes/{scope_id}",
-			c.RemoveScopeFromRole,
 		},
 		"UpdateRole": Route{
 			strings.ToUpper("Put"),
 			"/v1/roles/{id}",
 			c.UpdateRole,
 		},
+		"DeleteRole": Route{
+			strings.ToUpper("Delete"),
+			"/v1/roles/{id}",
+			c.DeleteRole,
+		},
+		"ListScopesForRole": Route{
+			strings.ToUpper("Get"),
+			"/v1/roles/{id}/scopes",
+			c.ListScopesForRole,
+		},
+		"AddScopeToRole": Route{
+			strings.ToUpper("Post"),
+			"/v1/roles/{id}/scopes",
+			c.AddScopeToRole,
+		},
+		"RemoveScopeFromRole": Route{
+			strings.ToUpper("Delete"),
+			"/v1/roles/{role_id}/scopes/{scope_id}",
+			c.RemoveScopeFromRole,
+		},
 	}
-}
-
-// AddScopeToRole - Add a scope to a role
-func (c *RoleAPIController) AddScopeToRole(w http.ResponseWriter, r *http.Request) {
-	idParam, err := parseNumericParameter[int32](
-		chi.URLParam(r, "id"),
-		WithRequire[int32](parseInt32),
-	)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
-		return
-	}
-	requestBodyParam := []string{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&requestBodyParam); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	result, err := c.service.AddScopeToRole(r.Context(), idParam, requestBodyParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-}
-
-// CreateRole - Create a new role
-func (c *RoleAPIController) CreateRole(w http.ResponseWriter, r *http.Request) {
-	roleParam := Role{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&roleParam); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	if err := AssertRoleRequired(roleParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertRoleConstraints(roleParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.CreateRole(r.Context(), roleParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-}
-
-// DeleteRole - Delete a role
-func (c *RoleAPIController) DeleteRole(w http.ResponseWriter, r *http.Request) {
-	idParam, err := parseNumericParameter[int32](
-		chi.URLParam(r, "id"),
-		WithRequire[int32](parseInt32),
-	)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
-		return
-	}
-	result, err := c.service.DeleteRole(r.Context(), idParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-}
-
-// GetRole - Returns a role
-func (c *RoleAPIController) GetRole(w http.ResponseWriter, r *http.Request) {
-	idParam, err := parseNumericParameter[int32](
-		chi.URLParam(r, "id"),
-		WithRequire[int32](parseInt32),
-	)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
-		return
-	}
-	result, err := c.service.GetRole(r.Context(), idParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
 // ListRoles - Returns a list of roles
@@ -231,6 +137,108 @@ func (c *RoleAPIController) ListRoles(w http.ResponseWriter, r *http.Request) {
 	} else {
 	}
 	result, err := c.service.ListRoles(r.Context(), limitParam, offsetParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
+// CreateRole - Create a new role
+func (c *RoleAPIController) CreateRole(w http.ResponseWriter, r *http.Request) {
+	roleParam := Role{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&roleParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertRoleRequired(roleParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertRoleConstraints(roleParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.CreateRole(r.Context(), roleParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
+// GetRole - Returns a role
+func (c *RoleAPIController) GetRole(w http.ResponseWriter, r *http.Request) {
+	idParam, err := parseNumericParameter[int32](
+		chi.URLParam(r, "id"),
+		WithRequire[int32](parseInt32),
+	)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
+		return
+	}
+	result, err := c.service.GetRole(r.Context(), idParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
+// UpdateRole - Update a role
+func (c *RoleAPIController) UpdateRole(w http.ResponseWriter, r *http.Request) {
+	idParam, err := parseNumericParameter[int32](
+		chi.URLParam(r, "id"),
+		WithRequire[int32](parseInt32),
+	)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
+		return
+	}
+	roleParam := Role{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&roleParam); err != nil && !errors.Is(err, io.EOF) {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertRoleRequired(roleParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertRoleConstraints(roleParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.UpdateRole(r.Context(), idParam, roleParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
+// DeleteRole - Delete a role
+func (c *RoleAPIController) DeleteRole(w http.ResponseWriter, r *http.Request) {
+	idParam, err := parseNumericParameter[int32](
+		chi.URLParam(r, "id"),
+		WithRequire[int32](parseInt32),
+	)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
+		return
+	}
+	result, err := c.service.DeleteRole(r.Context(), idParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -297,6 +305,33 @@ func (c *RoleAPIController) ListScopesForRole(w http.ResponseWriter, r *http.Req
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
+// AddScopeToRole - Add a scope to a role
+func (c *RoleAPIController) AddScopeToRole(w http.ResponseWriter, r *http.Request) {
+	idParam, err := parseNumericParameter[int32](
+		chi.URLParam(r, "id"),
+		WithRequire[int32](parseInt32),
+	)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
+		return
+	}
+	requestBodyParam := []string{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&requestBodyParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	result, err := c.service.AddScopeToRole(r.Context(), idParam, requestBodyParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
+}
+
 // RemoveScopeFromRole - Remove a scope from a role
 func (c *RoleAPIController) RemoveScopeFromRole(w http.ResponseWriter, r *http.Request) {
 	roleIdParam, err := parseNumericParameter[int32](
@@ -316,41 +351,6 @@ func (c *RoleAPIController) RemoveScopeFromRole(w http.ResponseWriter, r *http.R
 		return
 	}
 	result, err := c.service.RemoveScopeFromRole(r.Context(), roleIdParam, scopeIdParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
-}
-
-// UpdateRole - Update a role
-func (c *RoleAPIController) UpdateRole(w http.ResponseWriter, r *http.Request) {
-	idParam, err := parseNumericParameter[int32](
-		chi.URLParam(r, "id"),
-		WithRequire[int32](parseInt32),
-	)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Param: "id", Err: err}, nil)
-		return
-	}
-	roleParam := Role{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&roleParam); err != nil && !errors.Is(err, io.EOF) {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	if err := AssertRoleRequired(roleParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertRoleConstraints(roleParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.UpdateRole(r.Context(), idParam, roleParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

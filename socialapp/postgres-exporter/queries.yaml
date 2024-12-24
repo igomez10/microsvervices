@@ -1,0 +1,12 @@
+pg_exporter:
+  auto_discover_databases: true
+  queries:
+    my_query:
+      query: "SELECT date_trunc('day', created_at) AS day, COUNT(*) FROM properties GROUP BY day"
+      metrics:
+        - name: properties_created_daily
+          type: gauge
+          help: "Number of properties created per day"
+          key_labels:
+            - day
+          values: [count]

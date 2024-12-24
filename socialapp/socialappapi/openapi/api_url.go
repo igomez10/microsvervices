@@ -52,47 +52,37 @@ func NewURLAPIController(s URLAPIServicer, opts ...URLAPIOption) *URLAPIControll
 // Routes returns all the api routes for the URLAPIController
 func (c *URLAPIController) Routes() Routes {
 	return Routes{
-		"CreateUrl": Route{
-			strings.ToUpper("Post"),
-			"/v1/urls",
-			c.CreateUrl,
+		"GetUrl": Route{
+			strings.ToUpper("Get"),
+			"/v1/urls/{alias}",
+			c.GetUrl,
 		},
 		"DeleteUrl": Route{
 			strings.ToUpper("Delete"),
 			"/v1/urls/{alias}",
 			c.DeleteUrl,
 		},
-		"GetUrl": Route{
-			strings.ToUpper("Get"),
-			"/v1/urls/{alias}",
-			c.GetUrl,
-		},
 		"GetUrlData": Route{
 			strings.ToUpper("Get"),
 			"/v1/urls/{alias}/data",
 			c.GetUrlData,
 		},
+		"CreateUrl": Route{
+			strings.ToUpper("Post"),
+			"/v1/urls",
+			c.CreateUrl,
+		},
 	}
 }
 
-// CreateUrl - Create a new url
-func (c *URLAPIController) CreateUrl(w http.ResponseWriter, r *http.Request) {
-	urlParam := Url{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&urlParam); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+// GetUrl - Get a url
+func (c *URLAPIController) GetUrl(w http.ResponseWriter, r *http.Request) {
+	aliasParam := chi.URLParam(r, "alias")
+	if aliasParam == "" {
+		c.errorHandler(w, r, &RequiredError{"alias"}, nil)
 		return
 	}
-	if err := AssertUrlRequired(urlParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertUrlConstraints(urlParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.CreateUrl(r.Context(), urlParam)
+	result, err := c.service.GetUrl(r.Context(), aliasParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -119,14 +109,14 @@ func (c *URLAPIController) DeleteUrl(w http.ResponseWriter, r *http.Request) {
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
-// GetUrl - Get a url
-func (c *URLAPIController) GetUrl(w http.ResponseWriter, r *http.Request) {
+// GetUrlData - Returns a url metadata
+func (c *URLAPIController) GetUrlData(w http.ResponseWriter, r *http.Request) {
 	aliasParam := chi.URLParam(r, "alias")
 	if aliasParam == "" {
 		c.errorHandler(w, r, &RequiredError{"alias"}, nil)
 		return
 	}
-	result, err := c.service.GetUrl(r.Context(), aliasParam)
+	result, err := c.service.GetUrlData(r.Context(), aliasParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -136,14 +126,24 @@ func (c *URLAPIController) GetUrl(w http.ResponseWriter, r *http.Request) {
 	_ = EncodeJSONResponse(result.Body, &result.Code, result.Headers, w)
 }
 
-// GetUrlData - Returns a url metadata
-func (c *URLAPIController) GetUrlData(w http.ResponseWriter, r *http.Request) {
-	aliasParam := chi.URLParam(r, "alias")
-	if aliasParam == "" {
-		c.errorHandler(w, r, &RequiredError{"alias"}, nil)
+// CreateUrl - Create a new url
+func (c *URLAPIController) CreateUrl(w http.ResponseWriter, r *http.Request) {
+	urlParam := Url{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&urlParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	result, err := c.service.GetUrlData(r.Context(), aliasParam)
+	if err := AssertUrlRequired(urlParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertUrlConstraints(urlParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.CreateUrl(r.Context(), urlParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
