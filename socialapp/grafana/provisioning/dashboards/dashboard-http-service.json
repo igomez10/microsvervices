@@ -66,6 +66,7 @@
                         "axisLabel": "",
                         "axisPlacement": "auto",
                         "barAlignment": 0,
+                        "barWidthFactor": 0.6,
                         "drawStyle": "line",
                         "fillOpacity": 7,
                         "gradientMode": "hue",
@@ -172,6 +173,7 @@
                         "axisLabel": "",
                         "axisPlacement": "auto",
                         "barAlignment": 0,
+                        "barWidthFactor": 0.6,
                         "drawStyle": "line",
                         "fillOpacity": 0,
                         "gradientMode": "none",
@@ -267,6 +269,7 @@
                         "axisLabel": "",
                         "axisPlacement": "auto",
                         "barAlignment": 0,
+                        "barWidthFactor": 0.6,
                         "drawStyle": "line",
                         "fillOpacity": 0,
                         "gradientMode": "none",
@@ -362,6 +365,7 @@
                         "axisLabel": "",
                         "axisPlacement": "auto",
                         "barAlignment": 0,
+                        "barWidthFactor": 0.6,
                         "drawStyle": "line",
                         "fillOpacity": 0,
                         "gradientMode": "none",
@@ -460,6 +464,7 @@
                         "axisLabel": "",
                         "axisPlacement": "auto",
                         "barAlignment": 0,
+                        "barWidthFactor": 0.6,
                         "drawStyle": "line",
                         "fillOpacity": 0,
                         "gradientMode": "none",
@@ -561,6 +566,7 @@
                         "axisLabel": "",
                         "axisPlacement": "auto",
                         "barAlignment": 0,
+                        "barWidthFactor": 0.6,
                         "drawStyle": "line",
                         "fillOpacity": 0,
                         "gradientMode": "none",
@@ -656,6 +662,7 @@
                         "axisLabel": "",
                         "axisPlacement": "auto",
                         "barAlignment": 0,
+                        "barWidthFactor": 0.6,
                         "drawStyle": "line",
                         "fillOpacity": 0,
                         "gradientMode": "none",
@@ -745,9 +752,9 @@
         "list": [
             {
                 "current": {
-                    "selected": false,
-                    "text": "1h",
-                    "value": "1h"
+                    "selected": true,
+                    "text": "1m",
+                    "value": "1m"
                 },
                 "hide": 0,
                 "includeAll": false,
@@ -760,7 +767,7 @@
                         "value": "15s"
                     },
                     {
-                        "selected": false,
+                        "selected": true,
                         "text": "1m",
                         "value": "1m"
                     },
@@ -780,7 +787,7 @@
                         "value": "30m"
                     },
                     {
-                        "selected": true,
+                        "selected": false,
                         "text": "1h",
                         "value": "1h"
                     }
@@ -792,7 +799,7 @@
             },
             {
                 "current": {
-                    "selected": true,
+                    "selected": false,
                     "text": "0.95",
                     "value": "0.95"
                 },
@@ -852,7 +859,7 @@
                     {
                         "key": "job",
                         "operator": "=",
-                        "value": "socialapprender"
+                        "value": "socialapp"
                     }
                 ],
                 "hide": 1,
@@ -864,13 +871,13 @@
         ]
     },
     "time": {
-        "from": "now-24h",
+        "from": "now-30m",
         "to": "now"
     },
     "timepicker": {},
     "timezone": "",
     "title": "HTTP Service",
     "uid": "l1YgmnvVk",
-    "version": 7,
+    "version": 74,
     "weekStart": ""
 }
