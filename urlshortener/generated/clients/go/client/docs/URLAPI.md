@@ -81,7 +81,7 @@ Name | Type | Description  | Notes
 
 ## DeleteUrl
 
-> DeleteUrl(ctx, alias).Execute()
+> DeleteUrl(ctx, alias).XRequestID(xRequestID).Execute()
 
 Delete a url
 
@@ -101,10 +101,11 @@ import (
 
 func main() {
 	alias := "abcdef" // string | The alias of the url
+	xRequestID := "abcdef" // string | Request ID (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	r, err := apiClient.URLAPI.DeleteUrl(context.Background(), alias).Execute()
+	r, err := apiClient.URLAPI.DeleteUrl(context.Background(), alias).XRequestID(xRequestID).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `URLAPI.DeleteUrl``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -128,6 +129,7 @@ Other parameters are passed through a pointer to a apiDeleteUrlRequest struct vi
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 
+ **xRequestID** | **string** | Request ID | 
 
 ### Return type
 
@@ -149,7 +151,7 @@ Name | Type | Description  | Notes
 
 ## GetUrl
 
-> GetUrl(ctx, alias).Execute()
+> GetUrl(ctx, alias).XRequestID(xRequestID).Execute()
 
 Get a url
 
@@ -169,10 +171,11 @@ import (
 
 func main() {
 	alias := "thisisanalias" // string | The alias of the url
+	xRequestID := "abcdef" // string | Request ID (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	r, err := apiClient.URLAPI.GetUrl(context.Background(), alias).Execute()
+	r, err := apiClient.URLAPI.GetUrl(context.Background(), alias).XRequestID(xRequestID).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `URLAPI.GetUrl``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -196,6 +199,7 @@ Other parameters are passed through a pointer to a apiGetUrlRequest struct via t
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 
+ **xRequestID** | **string** | Request ID | 
 
 ### Return type
 
@@ -217,7 +221,7 @@ Name | Type | Description  | Notes
 
 ## GetUrlData
 
-> URL GetUrlData(ctx, alias).Execute()
+> URL GetUrlData(ctx, alias).XRequestID(xRequestID).Execute()
 
 Returns a url metadata
 
@@ -237,10 +241,11 @@ import (
 
 func main() {
 	alias := "abcdef" // string | The alias of the url
+	xRequestID := "abcdef" // string | Request ID (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.URLAPI.GetUrlData(context.Background(), alias).Execute()
+	resp, r, err := apiClient.URLAPI.GetUrlData(context.Background(), alias).XRequestID(xRequestID).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `URLAPI.GetUrlData``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -266,6 +271,7 @@ Other parameters are passed through a pointer to a apiGetUrlDataRequest struct v
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 
+ **xRequestID** | **string** | Request ID | 
 
 ### Return type
 

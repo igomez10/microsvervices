@@ -319,21 +319,24 @@ case $state in
         local -a _op_arguments
         _op_arguments=(
           "alias=:[PATH] The alias of the url"
-                    )
+                    "X-Request-ID\::[HEADER] Request ID"
+)
         _describe -t actions 'operations' _op_arguments -S '' && ret=0
         ;;
       getUrl)
         local -a _op_arguments
         _op_arguments=(
           "alias=:[PATH] The alias of the url"
-                    )
+                    "X-Request-ID\::[HEADER] Request ID"
+)
         _describe -t actions 'operations' _op_arguments -S '' && ret=0
         ;;
       getUrlData)
         local -a _op_arguments
         _op_arguments=(
           "alias=:[PATH] The alias of the url"
-                    )
+                    "X-Request-ID\::[HEADER] Request ID"
+)
         _describe -t actions 'operations' _op_arguments -S '' && ret=0
         ;;
     esac

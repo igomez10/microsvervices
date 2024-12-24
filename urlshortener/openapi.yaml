@@ -29,6 +29,13 @@ paths:
       description: Returns a url
       operationId: getUrl
       parameters:
+        - in: header
+          name: "X-Request-ID"
+          required: false
+          schema:
+            type: string
+          description: Request ID
+          example: "abcdef"
         - description: The alias of the url
           example: "thisisanalias"
           explode: false
@@ -62,6 +69,13 @@ paths:
       description: Delete a url
       operationId: deleteUrl
       parameters:
+        - in: header
+          name: "X-Request-ID"
+          required: false
+          schema:
+            type: string
+          description: Request ID
+          example: "abcdef"
         - description: The alias of the url
           example: "abcdef"
           explode: false
@@ -91,6 +105,13 @@ paths:
       description: Returns a url
       operationId: getUrlData
       parameters:
+        - in: header
+          name: "X-Request-ID"
+          required: false
+          schema:
+            type: string
+          description: Request ID
+          example: "abcdef"
         - description: The alias of the url
           example: "abcdef"
           explode: false

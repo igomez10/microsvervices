@@ -40,7 +40,7 @@ Create a new url
 
 <a name="deleteUrl"></a>
 # **deleteUrl**
-> deleteUrl(alias)
+> deleteUrl(alias, X-Request-ID)
 
 Delete a url
 
@@ -51,6 +51,7 @@ Delete a url
 |Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **alias** | **String**| The alias of the url | [default to null] |
+| **X-Request-ID** | **String**| Request ID | [optional] [default to null] |
 
 ### Return type
 
@@ -67,7 +68,7 @@ null (empty response body)
 
 <a name="getUrl"></a>
 # **getUrl**
-> getUrl(alias)
+> getUrl(alias, X-Request-ID)
 
 Get a url
 
@@ -78,6 +79,7 @@ Get a url
 |Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **alias** | **String**| The alias of the url | [default to null] |
+| **X-Request-ID** | **String**| Request ID | [optional] [default to null] |
 
 ### Return type
 
@@ -94,7 +96,7 @@ null (empty response body)
 
 <a name="getUrlData"></a>
 # **getUrlData**
-> URL getUrlData(alias)
+> URL getUrlData(alias, X-Request-ID)
 
 Returns a url metadata
 
@@ -105,6 +107,7 @@ Returns a url metadata
 |Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **alias** | **String**| The alias of the url | [default to null] |
+| **X-Request-ID** | **String**| Request ID | [optional] [default to null] |
 
 ### Return type
 

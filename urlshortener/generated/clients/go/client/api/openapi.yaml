@@ -26,6 +26,15 @@ paths:
       description: Delete a url
       operationId: deleteUrl
       parameters:
+      - description: Request ID
+        example: abcdef
+        explode: false
+        in: header
+        name: X-Request-ID
+        required: false
+        schema:
+          type: string
+        style: simple
       - description: The alias of the url
         example: abcdef
         explode: false
@@ -54,6 +63,15 @@ paths:
       description: Returns a url
       operationId: getUrl
       parameters:
+      - description: Request ID
+        example: abcdef
+        explode: false
+        in: header
+        name: X-Request-ID
+        required: false
+        schema:
+          type: string
+        style: simple
       - description: The alias of the url
         example: thisisanalias
         explode: false
@@ -90,6 +108,15 @@ paths:
       description: Returns a url
       operationId: getUrlData
       parameters:
+      - description: Request ID
+        example: abcdef
+        explode: false
+        in: header
+        name: X-Request-ID
+        required: false
+        schema:
+          type: string
+        style: simple
       - description: The alias of the url
         example: abcdef
         explode: false

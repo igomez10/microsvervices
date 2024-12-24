@@ -56,7 +56,7 @@ Delete a url
 ### Example
 
 ```bash
-urlshortener-cli deleteUrl alias=value
+urlshortener-cli deleteUrl alias=value X-Request-ID:value
 ```
 
 ### Parameters
@@ -65,6 +65,7 @@ urlshortener-cli deleteUrl alias=value
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **alias** | **string** | The alias of the url | [default to null]
+ **xRequestID** | **string** | Request ID | [optional] [default to null]
 
 ### Return type
 
@@ -91,7 +92,7 @@ Returns a url
 ### Example
 
 ```bash
-urlshortener-cli getUrl alias=value
+urlshortener-cli getUrl alias=value X-Request-ID:value
 ```
 
 ### Parameters
@@ -100,6 +101,7 @@ urlshortener-cli getUrl alias=value
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **alias** | **string** | The alias of the url | [default to null]
+ **xRequestID** | **string** | Request ID | [optional] [default to null]
 
 ### Return type
 
@@ -126,7 +128,7 @@ Returns a url
 ### Example
 
 ```bash
-urlshortener-cli getUrlData alias=value
+urlshortener-cli getUrlData alias=value X-Request-ID:value
 ```
 
 ### Parameters
@@ -135,6 +137,7 @@ urlshortener-cli getUrlData alias=value
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **alias** | **string** | The alias of the url | [default to null]
+ **xRequestID** | **string** | Request ID | [optional] [default to null]
 
 ### Return type
 

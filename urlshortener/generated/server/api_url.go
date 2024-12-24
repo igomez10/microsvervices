@@ -82,7 +82,8 @@ func (c *URLAPIController) GetUrl(w http.ResponseWriter, r *http.Request) {
 		c.errorHandler(w, r, &RequiredError{"alias"}, nil)
 		return
 	}
-	result, err := c.service.GetUrl(r.Context(), aliasParam)
+	xRequestIDParam := r.Header.Get("X-Request-ID")
+	result, err := c.service.GetUrl(r.Context(), aliasParam, xRequestIDParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -99,7 +100,8 @@ func (c *URLAPIController) DeleteUrl(w http.ResponseWriter, r *http.Request) {
 		c.errorHandler(w, r, &RequiredError{"alias"}, nil)
 		return
 	}
-	result, err := c.service.DeleteUrl(r.Context(), aliasParam)
+	xRequestIDParam := r.Header.Get("X-Request-ID")
+	result, err := c.service.DeleteUrl(r.Context(), aliasParam, xRequestIDParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -116,7 +118,8 @@ func (c *URLAPIController) GetUrlData(w http.ResponseWriter, r *http.Request) {
 		c.errorHandler(w, r, &RequiredError{"alias"}, nil)
 		return
 	}
-	result, err := c.service.GetUrlData(r.Context(), aliasParam)
+	xRequestIDParam := r.Header.Get("X-Request-ID")
+	result, err := c.service.GetUrlData(r.Context(), aliasParam, xRequestIDParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

@@ -170,6 +170,13 @@ type ApiDeleteUrlRequest struct {
 	ctx        context.Context
 	ApiService *URLAPIService
 	alias      string
+	xRequestID *string
+}
+
+// Request ID
+func (r ApiDeleteUrlRequest) XRequestID(xRequestID string) ApiDeleteUrlRequest {
+	r.xRequestID = &xRequestID
+	return r
 }
 
 func (r ApiDeleteUrlRequest) Execute() (*http.Response, error) {
@@ -230,6 +237,9 @@ func (a *URLAPIService) DeleteUrlExecute(r ApiDeleteUrlRequest) (*http.Response,
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
+	if r.xRequestID != nil {
+		parameterAddToHeaderOrQuery(localVarHeaderParams, "X-Request-ID", r.xRequestID, "simple", "")
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return nil, err
@@ -272,6 +282,13 @@ type ApiGetUrlRequest struct {
 	ctx        context.Context
 	ApiService *URLAPIService
 	alias      string
+	xRequestID *string
+}
+
+// Request ID
+func (r ApiGetUrlRequest) XRequestID(xRequestID string) ApiGetUrlRequest {
+	r.xRequestID = &xRequestID
+	return r
 }
 
 func (r ApiGetUrlRequest) Execute() (*http.Response, error) {
@@ -332,6 +349,9 @@ func (a *URLAPIService) GetUrlExecute(r ApiGetUrlRequest) (*http.Response, error
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
+	if r.xRequestID != nil {
+		parameterAddToHeaderOrQuery(localVarHeaderParams, "X-Request-ID", r.xRequestID, "simple", "")
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return nil, err
@@ -374,6 +394,13 @@ type ApiGetUrlDataRequest struct {
 	ctx        context.Context
 	ApiService *URLAPIService
 	alias      string
+	xRequestID *string
+}
+
+// Request ID
+func (r ApiGetUrlDataRequest) XRequestID(xRequestID string) ApiGetUrlDataRequest {
+	r.xRequestID = &xRequestID
+	return r
 }
 
 func (r ApiGetUrlDataRequest) Execute() (*URL, *http.Response, error) {
@@ -436,6 +463,9 @@ func (a *URLAPIService) GetUrlDataExecute(r ApiGetUrlDataRequest) (*URL, *http.R
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if r.xRequestID != nil {
+		parameterAddToHeaderOrQuery(localVarHeaderParams, "X-Request-ID", r.xRequestID, "simple", "")
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {

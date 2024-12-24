@@ -78,9 +78,9 @@ _urlshortener-cli()
     # Only include path, query and header parameters
     declare -A operation_parameters
     operation_parameters["createUrl"]="X-Request-ID: "
-    operation_parameters["deleteUrl"]="alias= "
-    operation_parameters["getUrl"]="alias= "
-    operation_parameters["getUrlData"]="alias= "
+    operation_parameters["deleteUrl"]="alias= X-Request-ID: "
+    operation_parameters["getUrl"]="alias= X-Request-ID: "
+    operation_parameters["getUrlData"]="alias= X-Request-ID: "
 
     # An associative array of possible values for enum parameters
     declare -A operation_parameters_enum_values

@@ -31,8 +31,8 @@ type URLAPIRouter interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type URLAPIServicer interface {
-	GetUrl(context.Context, string) (ImplResponse, error)
-	DeleteUrl(context.Context, string) (ImplResponse, error)
-	GetUrlData(context.Context, string) (ImplResponse, error)
+	GetUrl(context.Context, string, string) (ImplResponse, error)
+	DeleteUrl(context.Context, string, string) (ImplResponse, error)
+	GetUrlData(context.Context, string, string) (ImplResponse, error)
 	CreateUrl(context.Context, Url, string) (ImplResponse, error)
 }

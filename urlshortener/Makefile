@@ -1,4 +1,5 @@
 generate-openapi:
+	set -e
 	#  generate server:
 	rm -rf ./generated/server
 	openapi-generator-cli generate -i openapi.yaml  \
