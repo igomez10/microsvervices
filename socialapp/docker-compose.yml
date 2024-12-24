@@ -1,5 +1,3 @@
-version: "3.7"
-
 networks:
   elk:
     name: docker-elk_elk
