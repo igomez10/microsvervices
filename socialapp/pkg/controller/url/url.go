@@ -81,7 +81,10 @@ func (s *URLApiService) DeleteUrl(ctx context.Context, alias string) (openapi.Im
 	log := contexthelper.GetLoggerInContext(ctx)
 
 	// use the urlshortener service
-	res, err := s.Client.URLAPI.DeleteUrl(ctx, alias).Execute()
+	res, err := s.Client.URLAPI.
+		DeleteUrl(ctx, alias).
+		XRequestID(contexthelper.GetRequestIDInContext(ctx)).
+		Execute()
 	if err != nil || res.StatusCode != http.StatusOK {
 		log.Error().Err(err).Msg("error deleting url")
 		return openapi.ImplResponse{
@@ -104,7 +107,10 @@ func (s *URLApiService) GetUrl(ctx context.Context, alias string) (openapi.ImplR
 
 	var shortURL string
 	// use the urlshortener service
-	u, res, err := s.Client.URLAPI.GetUrlData(ctx, alias).Execute()
+	u, res, err := s.Client.URLAPI.
+		GetUrlData(ctx, alias).
+		XRequestID(contexthelper.GetRequestIDInContext(ctx)).
+		Execute()
 	if err != nil || res.StatusCode != http.StatusOK {
 		switch res.StatusCode {
 		case http.StatusNotFound:
@@ -147,7 +153,10 @@ func (s *URLApiService) GetUrlData(ctx context.Context, alias string) (openapi.I
 	log := contexthelper.GetLoggerInContext(ctx)
 
 	var responseUrl openapi.Url
-	u, apiRes, err := s.Client.URLAPI.GetUrlData(ctx, alias).Execute()
+	u, apiRes, err := s.Client.URLAPI.
+		GetUrlData(ctx, alias).
+		XRequestID(contexthelper.GetRequestIDInContext(ctx)).
+		Execute()
 	if err != nil || apiRes.StatusCode != http.StatusOK {
 		log.Error().Err(err).Msg("error getting url from urlshortener service")
 		return openapi.ImplResponse{

@@ -11,7 +11,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/igomez10/microservices/urlshortener v0.0.0-20241224084620-8b24ead86259
+	github.com/igomez10/microservices/urlshortener v0.0.0-20241224100245-86938934dd35
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/lib/pq v1.10.9
 	github.com/newrelic/go-agent/v3 v3.24.1

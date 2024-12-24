@@ -55,8 +55,10 @@ github.com/hashicorp/go-hclog v1.6.3 h1:Qr2kF+eVWjTiYmU7Y31tYlP1h0q/X3Nl3tPGdaB1
 github.com/hashicorp/go-hclog v1.6.3/go.mod h1:W4Qnvbt70Wk/zYJryRzDRU/4r0kIg0PVHBcfoyhpF5M=
 github.com/hashicorp/go-retryablehttp v0.7.7 h1:C8hUCYzor8PIfXHa4UrZkU4VvK8o9ISHxT2Q8+VepXU=
 github.com/hashicorp/go-retryablehttp v0.7.7/go.mod h1:pkQpWZeYWskR+D1tR2O5OcBFOxfA7DoAO6xtkuQnHTk=
-github.com/igomez10/microservices/urlshortener v0.0.0-20241224084620-8b24ead86259 h1:g5IHMJ5cai7jPbuR+pXm1j/qTxJn3rnFZt9ZJqWfI/Q=
-github.com/igomez10/microservices/urlshortener v0.0.0-20241224084620-8b24ead86259/go.mod h1:y1/G194gV8w2LzrNmpxaoOlnexcxL4CYiMAnk6i6apg=
+github.com/igomez10/microservices/urlshortener v0.0.0-20241224094601-da47e579eb50 h1:YWlvEGhIAUbzajFrbUaWhIeTmQtTDwdOyKo93DP+a7s=
+github.com/igomez10/microservices/urlshortener v0.0.0-20241224094601-da47e579eb50/go.mod h1:y1/G194gV8w2LzrNmpxaoOlnexcxL4CYiMAnk6i6apg=
+github.com/igomez10/microservices/urlshortener v0.0.0-20241224100245-86938934dd35 h1:YRuSH5IS8yrLLEeQsYePzsgID0fV91kMkboyy8OflX8=
+github.com/igomez10/microservices/urlshortener v0.0.0-20241224100245-86938934dd35/go.mod h1:y1/G194gV8w2LzrNmpxaoOlnexcxL4CYiMAnk6i6apg=
 github.com/invopop/yaml v0.2.0 h1:7zky/qH+O0DwAyoobXUqvVBwgBFRxKoQ/3FjcVpjTMY=
 github.com/invopop/yaml v0.2.0/go.mod h1:2XuRLgs/ouIrW3XNzuNj7J3Nvu/Dig5MXvbCEdiBN3Q=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
