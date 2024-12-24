@@ -156,7 +156,6 @@ func main() {
 
 		return false, nil
 	}
-
 	http.DefaultClient = retryClient.StandardClient()
 
 	// Set proxy
@@ -297,11 +296,16 @@ func main() {
 		c.agentURL = u
 	}
 
-	run(ctx, c)
+	signalChan := make(chan os.Signal, 1)
+	go run(ctx, c)
+	select {
+	case s := <-signalChan:
+		log.Info().Msgf("Shutting down: %q", s.String())
+		return
+	}
 }
 
 func run(_ context.Context, config Configuration) {
-
 	// Setup logger
 	zerolog.SetGlobalLevel(config.logLevel)
 	log.Logger = zerolog.New(config.logDestination)
