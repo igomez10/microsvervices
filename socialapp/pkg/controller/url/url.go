@@ -45,7 +45,7 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL openapi.Url) (open
 				Message: "error creating url",
 				Code:    http.StatusInternalServerError,
 			},
-		}, err
+		}, nil
 	}
 
 	switch createRes.StatusCode {
