@@ -12,7 +12,6 @@ import (
 
 // Beacon is used to configure a centralized logging platform for the application.
 type Beacon struct {
-	Logger zerolog.Logger
 }
 
 // Middleware returns a handler that logs all the request/response information for
@@ -26,7 +25,8 @@ func (b *Beacon) Middleware(next http.Handler) http.Handler {
 		r = r.WithContext(ctx)
 
 		customW := responseWriter.NewCustomResponseWriter(w)
-		r = r.WithContext(contexthelper.SetLoggerInContext(r.Context(), b.Logger))
+		logger := contexthelper.GetLoggerInContext(r.Context())
+		r = r.WithContext(contexthelper.SetLoggerInContext(r.Context(), logger))
 		startTime := time.Now()
 
 		// Handle the request
@@ -34,7 +34,7 @@ func (b *Beacon) Middleware(next http.Handler) http.Handler {
 
 		// Log the response
 		statusCode := customW.StatusCode
-		logEvent := createLogEvent(r, statusCode, startTime, &b.Logger)
+		logEvent := createLogEvent(r, statusCode, startTime, &logger)
 		logEvent.Msgf("finished request")
 	})
 }

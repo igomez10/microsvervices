@@ -394,7 +394,7 @@ func run(_ context.Context, config Configuration) {
 		AuthEndpoint:     "/v1/oauth/token",
 	}
 
-	beacon := beacon.Beacon{Logger: log.Logger}
+	beacon := beacon.Beacon{}
 
 	// open apispec file
 	openAPIPath := "openapi.yaml"
