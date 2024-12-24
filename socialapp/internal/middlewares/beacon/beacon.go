@@ -42,14 +42,12 @@ func (b *Beacon) Middleware(next http.Handler) http.Handler {
 // Create a log event based on the request and response.
 func createLogEvent(r *http.Request, statusCode int, startTime time.Time, logger *zerolog.Logger) *zerolog.Event {
 	requestPattern := contexthelper.GetRequestPatternInContext(r.Context())
-	requestID := contexthelper.GetRequestIDInContext(r.Context())
 	latency := time.Since(startTime).Milliseconds()
 
 	logevent := logger.WithLevel(zerolog.InfoLevel).
 		Str("path", r.URL.Path).
 		Str("query", r.URL.RawQuery).
 		Str("pattern", requestPattern).
-		Str("X-Request-ID", requestID).
 		Str("method", r.Method).
 		Str("remote_addr", r.RemoteAddr).
 		Str("user_agent", r.UserAgent()).
