@@ -32,6 +32,12 @@
                                             "value": "application/json",
                                             "description": "",
                                             "disabled": false
+                                        },
+                                        {
+                                            "key": "X-Request-ID",
+                                            "value": "",
+                                            "description": "Request ID",
+                                            "disabled": true
                                         }
                                     ],
                                     "body": {

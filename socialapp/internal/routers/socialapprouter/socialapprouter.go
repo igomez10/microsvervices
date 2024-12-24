@@ -35,7 +35,6 @@ func NewSocialAppRouter(middlewares []func(http.Handler) http.Handler, routers [
 	mainRouter.Group(func(r chi.Router) {
 		// HEALTH
 		r.MethodFunc("GET", "/health", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("OK"))
 		})
 

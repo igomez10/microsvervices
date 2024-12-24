@@ -37,7 +37,7 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL openapi.Url) (open
 		URL(*newURLRequest).
 		Execute()
 	if err != nil {
-		log.Error().Err(err).Msgf("error creating url %q with alias %q", newURL.Url, newURL.Alias)
+		log.Error().Err(err).Msgf("unexpected error creating url %q with alias %q", newURL.Url, newURL.Alias)
 		return openapi.ImplResponse{
 			Code: http.StatusInternalServerError,
 			Body: openapi.Error{
@@ -49,7 +49,6 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL openapi.Url) (open
 
 	switch createRes.StatusCode {
 	case http.StatusConflict:
-		log.Error().Err(err).Msgf("url with alias %q already exists", newURL.Alias)
 		return openapi.ImplResponse{
 			Code: http.StatusConflict,
 			Body: openapi.Error{

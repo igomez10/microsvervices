@@ -520,7 +520,7 @@ func run(_ context.Context, config Configuration) {
 				usr, pwd, ok := r.BasicAuth()
 				if !ok {
 					w.Header().Set("WWW-Authenticate", `Basic realm="`+"Please enter your username and password for this site"+`"`)
-					w.WriteHeader(401)
+					w.WriteHeader(http.StatusUnauthorized)
 					w.Write([]byte("Unauthorized.\n"))
 					return
 				} else {
@@ -546,8 +546,8 @@ func run(_ context.Context, config Configuration) {
 		default:
 			message := fmt.Sprintf("Host %q Not found", r.Host)
 			log.Info().Str("Host", r.Host).Msg("Request host invalid Host")
+			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(message))
-			w.WriteHeader(404)
 		}
 	})
 

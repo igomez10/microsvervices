@@ -44,7 +44,7 @@ func (m *MetricEvent) toMap() map[string]interface{} {
 	}
 }
 
-func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url) (server.ImplResponse, error) {
+func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, requestID string) (server.ImplResponse, error) {
 	ctx, span := tracerhelper.GetTracer().Start(ctx, "CreateUrl")
 	defer span.End()
 

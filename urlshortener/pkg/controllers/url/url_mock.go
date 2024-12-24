@@ -16,7 +16,7 @@ type URLMock struct {
 	errorToReturn    error
 }
 
-func (s *URLMock) CreateUrl(_ context.Context, _ server.Url) (server.ImplResponse, error) {
+func (s *URLMock) CreateUrl(_ context.Context, _ server.Url, _ string) (server.ImplResponse, error) {
 	panic("not implemented") // TODO: Implement
 }
 

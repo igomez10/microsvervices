@@ -143,7 +143,8 @@ func (c *URLAPIController) CreateUrl(w http.ResponseWriter, r *http.Request) {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.CreateUrl(r.Context(), urlParam)
+	xRequestIDParam := r.Header.Get("X-Request-ID")
+	result, err := c.service.CreateUrl(r.Context(), urlParam, xRequestIDParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

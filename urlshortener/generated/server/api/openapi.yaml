@@ -119,6 +119,16 @@ paths:
     post:
       description: Returns a url
       operationId: createUrl
+      parameters:
+      - description: Request ID
+        example: abcdef
+        explode: false
+        in: header
+        name: X-Request-ID
+        required: false
+        schema:
+          type: string
+        style: simple
       requestBody:
         content:
           application/json:

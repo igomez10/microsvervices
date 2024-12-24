@@ -27,6 +27,7 @@ func Middleware(next http.Handler) http.Handler {
 		log = log.With().
 			Str("X-Request-ID", requestID).
 			Logger()
+		contexthelper.SetLoggerInContext(r.Context(), log)
 
 		r = r.WithContext(contexthelper.SetLoggerInContext(r.Context(), log))
 

@@ -97,6 +97,7 @@ declare -a result_color_table=( "$WHITE" "$WHITE" "$GREEN" "$YELLOW" "$WHITE" "$
 # 1 - required
 declare -A operation_parameters_minimum_occurrences
 operation_parameters_minimum_occurrences["createUrl:::URL"]=1
+operation_parameters_minimum_occurrences["createUrl:::X-Request-ID"]=0
 operation_parameters_minimum_occurrences["deleteUrl:::alias"]=1
 operation_parameters_minimum_occurrences["getUrl:::alias"]=1
 operation_parameters_minimum_occurrences["getUrlData:::alias"]=1
@@ -109,6 +110,7 @@ operation_parameters_minimum_occurrences["getUrlData:::alias"]=1
 # 0 - unlimited
 declare -A operation_parameters_maximum_occurrences
 operation_parameters_maximum_occurrences["createUrl:::URL"]=0
+operation_parameters_maximum_occurrences["createUrl:::X-Request-ID"]=0
 operation_parameters_maximum_occurrences["deleteUrl:::alias"]=0
 operation_parameters_maximum_occurrences["getUrl:::alias"]=0
 operation_parameters_maximum_occurrences["getUrlData:::alias"]=0
@@ -118,6 +120,7 @@ operation_parameters_maximum_occurrences["getUrlData:::alias"]=0
 # - multi, csv, ssv, tsv
 declare -A operation_parameters_collection_type
 operation_parameters_collection_type["createUrl:::URL"]=""
+operation_parameters_collection_type["createUrl:::X-Request-ID"]=""
 operation_parameters_collection_type["deleteUrl:::alias"]=""
 operation_parameters_collection_type["getUrl:::alias"]=""
 operation_parameters_collection_type["getUrlData:::alias"]=""
@@ -590,6 +593,7 @@ print_createUrl_help() {
     echo -e "Returns a url" | paste -sd' ' | fold -sw 80
     echo -e ""
     echo -e "${BOLD}${WHITE}Parameters${OFF}"
+    echo -e "  * ${GREEN}X-Request-ID${OFF} ${BLUE}[string]${OFF} ${CYAN}(default: null)${OFF} - Request ID ${YELLOW}Specify as: X-Request-ID:value${OFF}" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e "  * ${GREEN}body${OFF} ${BLUE}[application/json]${OFF} ${RED}(required)${OFF}${OFF} - Create a new url" | paste -sd' ' | fold -sw 80 | sed '2,$s/^/    /'
     echo -e ""
     echo ""

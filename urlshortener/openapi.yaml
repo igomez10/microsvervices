@@ -120,6 +120,14 @@ paths:
       summary: Create a new url
       description: Returns a url
       operationId: createUrl
+      parameters:
+        - in: header
+          name: "X-Request-ID"
+          required: false
+          schema:
+            type: string
+          description: Request ID
+          example: "abcdef"
       requestBody:
         content:
           application/json:
@@ -153,6 +161,7 @@ paths:
         - URL
 
 components:
+  # header request id
   schemas:
     Error:
       example:

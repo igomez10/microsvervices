@@ -20,7 +20,7 @@ Returns a url
 ### Example
 
 ```bash
-urlshortener-cli createUrl
+urlshortener-cli createUrl X-Request-ID:value
 ```
 
 ### Parameters
@@ -29,6 +29,7 @@ urlshortener-cli createUrl
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **uRL** | [**URL**](URL.md) | Create a new url |
+ **xRequestID** | **string** | Request ID | [optional] [default to null]
 
 ### Return type
 
