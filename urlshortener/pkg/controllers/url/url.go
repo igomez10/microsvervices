@@ -96,7 +96,7 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, reques
 
 }
 
-func (s *URLApiService) DeleteUrl(ctx context.Context, alias string) (server.ImplResponse, error) {
+func (s *URLApiService) DeleteUrl(ctx context.Context, alias string, requestID string) (server.ImplResponse, error) {
 	ctx, span := tracerhelper.GetTracer().Start(ctx, "DeleteUrl")
 	defer span.End()
 
@@ -129,7 +129,7 @@ func (s *URLApiService) DeleteUrl(ctx context.Context, alias string) (server.Imp
 	}, nil
 }
 
-func (s *URLApiService) GetUrl(ctx context.Context, alias string) (server.ImplResponse, error) {
+func (s *URLApiService) GetUrl(ctx context.Context, alias string, requestID string) (server.ImplResponse, error) {
 	ctx, span := tracerhelper.GetTracer().Start(ctx, "GetUrl")
 	defer span.End()
 
@@ -166,7 +166,7 @@ func (s *URLApiService) GetUrl(ctx context.Context, alias string) (server.ImplRe
 	return res, nil
 }
 
-func (s *URLApiService) GetUrlData(ctx context.Context, alias string) (server.ImplResponse, error) {
+func (s *URLApiService) GetUrlData(ctx context.Context, alias string, requestID string) (server.ImplResponse, error) {
 	ctx, span := tracerhelper.GetTracer().Start(ctx, "GetUrlData")
 	defer span.End()
 

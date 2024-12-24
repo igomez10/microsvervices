@@ -20,14 +20,14 @@ func (s *URLMock) CreateUrl(_ context.Context, _ server.Url, _ string) (server.I
 	panic("not implemented") // TODO: Implement
 }
 
-func (s *URLMock) DeleteUrl(_ context.Context, _ string) (server.ImplResponse, error) {
+func (s *URLMock) DeleteUrl(_ context.Context, _ string, _ string) (server.ImplResponse, error) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (s *URLMock) GetUrl(_ context.Context, _ string) (server.ImplResponse, error) {
+func (s *URLMock) GetUrl(_ context.Context, _ string, _ string) (server.ImplResponse, error) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (s *URLMock) GetUrlData(_ context.Context, _ string) (server.ImplResponse, error) {
+func (s *URLMock) GetUrlData(_ context.Context, _ string, _ string) (server.ImplResponse, error) {
 	panic("not implemented") // TODO: Implement
 }

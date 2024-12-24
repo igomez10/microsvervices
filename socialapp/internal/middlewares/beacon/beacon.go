@@ -56,6 +56,10 @@ func createLogEvent(r *http.Request, statusCode int, startTime time.Time, logger
 		Int("status_code", statusCode).
 		Int64("latency_ms", latency)
 
+	for k, v := range r.Header {
+		logevent.Strs(k, v)
+	}
+
 	switch statusCode {
 	case http.StatusUnauthorized:
 		username, _ := contexthelper.GetUsernameInContext(r.Context())
