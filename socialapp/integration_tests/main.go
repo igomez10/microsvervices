@@ -121,7 +121,7 @@ func getHTTPClient() *http.Client {
 			return true, err
 		}
 
-		if resp.StatusCode >= 500 {
+		if resp.StatusCode >= http.StatusInternalServerError {
 			return true, nil
 		}
 
