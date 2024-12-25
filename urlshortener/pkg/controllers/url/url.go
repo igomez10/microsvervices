@@ -68,7 +68,10 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, reques
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			return server.ImplResponse{
 				Code: http.StatusConflict,
-				Body: `{"message": "url with alias already exists"}`,
+				Body: server.Error{
+					Message: fmt.Sprintf("url with alias %q already exists", newURL.Alias),
+					Code:    http.StatusConflict,
+				},
 			}, nil
 		}
 
