@@ -57,6 +57,10 @@ func createLogEvent(r *http.Request, statusCode int, startTime time.Time, logger
 		Int64("latency_ms", latency)
 
 	for k, v := range r.Header {
+		if k == "Authorization" {
+			continue
+		}
+
 		logevent.Strs(k, v)
 	}
 
