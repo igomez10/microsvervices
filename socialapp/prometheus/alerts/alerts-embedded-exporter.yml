@@ -6,7 +6,7 @@ groups:
 
     - alert: PrometheusJobMissing
       expr: 'absent(up{job="prometheus"})'
-      for: 0m
+      for: 2m
       labels:
         severity: warning
       annotations:
@@ -60,7 +60,7 @@ groups:
 
     - alert: PrometheusAlertmanagerJobMissing
       expr: 'absent(up{job="alertmanager"})'
-      for: 0m
+      for: 2m
       labels:
         severity: warning
       annotations:
