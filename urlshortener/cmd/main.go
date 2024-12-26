@@ -161,7 +161,7 @@ type customHTTPResponseWriter struct {
 
 func (w *customHTTPResponseWriter) WriteHeader(statusCode int) {
 	w.statusCode = statusCode
-	// w.ResponseWriter.WriteHeader(statusCode)
+	w.ResponseWriter.WriteHeader(statusCode)
 }
 
 func ObservabilityMiddleware() func(next http.Handler) http.Handler {
