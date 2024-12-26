@@ -21,9 +21,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/slok/go-http-metrics/metrics/prometheus"
-	metricsMiddleware "github.com/slok/go-http-metrics/middleware"
-	"github.com/slok/go-http-metrics/middleware/std"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -260,10 +257,10 @@ func NewRouter(middlewares []func(http.Handler) http.Handler, routers []server.R
 
 	// Main router group for api logic
 	mainRouter.Group(func(r chi.Router) {
-		mdlw := metricsMiddleware.New(metricsMiddleware.Config{
-			Recorder: prometheus.NewRecorder(prometheus.Config{}),
-			Service:  opts.AppName,
-		})
+		// mdlw := metricsMiddleware.New(metricsMiddleware.Config{
+		// 	Recorder: prometheus.NewRecorder(prometheus.Config{}),
+		// 	Service:  opts.AppName,
+		// })
 
 		for _, api := range routers {
 			for _, route := range api.Routes() {
@@ -272,7 +269,7 @@ func NewRouter(middlewares []func(http.Handler) http.Handler, routers []server.R
 
 				r.Group(func(r chi.Router) {
 					// use a  custom middleware to record the metrics on the route pattern.
-					r.Use(std.HandlerProvider(route.Pattern, mdlw))
+					// r.Use(std.HandlerProvider(route.Pattern, mdlw))
 
 					pattern := Pattern{Pattern: route.Pattern}
 					r.Use(pattern.Middleware)
