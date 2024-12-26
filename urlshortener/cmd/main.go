@@ -15,6 +15,7 @@ import (
 	"github.com/igomez10/microservices/urlshortener/pkg/contexthelper"
 	"github.com/igomez10/microservices/urlshortener/pkg/controllers/url"
 	"github.com/igomez10/microservices/urlshortener/pkg/db"
+	"github.com/igomez10/microservices/urlshortener/pkg/tracerhelper"
 	flags "github.com/jessevdk/go-flags"
 	_ "github.com/newrelic/go-agent/v3/integrations/nrpq"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -189,10 +190,15 @@ func ObservabilityMiddleware(logger zerolog.Logger) func(next http.Handler) http
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
+			ctx, span := tracerhelper.GetTracer().Start(ctx, "ObservabilityMiddleware")
+			span.SetAttributes(attribute.String("x-request-id", middleware.GetReqID(ctx)))
+			defer span.End()
 			// Add the logger to the context
 			ctx = contexthelper.SetLoggerInContext(ctx, logger)
 			r = r.WithContext(ctx)
-			customW := &customHTTPResponseWriter{w, http.StatusOK}
+			customW := &customHTTPResponseWriter{
+				ResponseWriter: w,
+			}
 			next.ServeHTTP(customW, r)
 			logger.Info().
 				Str("method", r.Method).
