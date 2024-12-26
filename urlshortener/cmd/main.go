@@ -139,11 +139,6 @@ func main() {
 
 	// Start HTTP server
 	middlewares := []func(http.Handler) http.Handler{
-		func(h http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			})
-		},
 		middleware.RequestID,
 		middleware.RealIP,
 		middleware.Recoverer,
@@ -274,11 +269,6 @@ func NewRouter(middlewares []func(http.Handler) http.Handler, routers []server.R
 			for _, route := range api.Routes() {
 
 				r.Group(func(r chi.Router) {
-					r.Use(func(h http.Handler) http.Handler {
-						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-							w.WriteHeader(http.StatusOK)
-						})
-					})
 					// use a  custom middleware to record the metrics on the route pattern.
 					r.Use(std.HandlerProvider(route.Pattern, mdlw))
 
