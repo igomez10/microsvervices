@@ -18,7 +18,6 @@ import (
 	"github.com/igomez10/microservices/urlshortener/pkg/tracerhelper"
 	flags "github.com/jessevdk/go-flags"
 	_ "github.com/newrelic/go-agent/v3/integrations/nrpq"
-	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -119,24 +118,6 @@ func main() {
 		}
 	}()
 
-	// start new relic
-	var newrelicApp *newrelic.Application
-	if opts.NewRelicLicense != "" {
-		na, err := newrelic.NewApplication(
-			newrelic.ConfigAppName("urlshortener"),
-			newrelic.ConfigLicense(opts.NewRelicLicense),
-			newrelic.ConfigAppLogForwardingEnabled(false),
-			newrelic.ConfigAppLogEnabled(false),
-			newrelic.ConfigDistributedTracerEnabled(true),
-		)
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to create new relic application")
-		}
-		newrelicApp = na
-	} else {
-		log.Warn().Msg("new relic license not provided, new relic will not be enabled")
-	}
-
 	exporter, err := otlptracegrpc.New(mainCtx, otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpointURL(opts.AgentURL))
 	if err != nil {
 		log.Fatal().Err(err).Msgf("failed to create otlp exporter for tracing %q", opts.AgentURL)
@@ -163,7 +144,7 @@ func main() {
 		middleware.Recoverer,
 		ObservabilityMiddleware(),
 	}
-	urlRouter := NewRouter(middlewares, []server.Router{URLAPIController}, newrelicApp)
+	urlRouter := NewRouter(middlewares, []server.Router{URLAPIController})
 
 	addr := fmt.Sprintf("%s:%d", opts.HTTPAddr, opts.Port)
 	log.Info().Str("addr", addr).Msg("starting HTTP server")
@@ -274,12 +255,11 @@ func (p *Pattern) Middleware(next http.Handler) http.Handler {
 }
 
 // NewRouter creates a new router for any number of api routers
-func NewRouter(middlewares []func(http.Handler) http.Handler, routers []server.Router, newrelicApp *newrelic.Application) chi.Router {
+func NewRouter(middlewares []func(http.Handler) http.Handler, routers []server.Router) chi.Router {
 	mainRouter := chi.NewRouter()
 
 	// Main router group for api logic
 	mainRouter.Group(func(r chi.Router) {
-
 		mdlw := metricsMiddleware.New(metricsMiddleware.Config{
 			Recorder: prometheus.NewRecorder(prometheus.Config{}),
 			Service:  "urlshortener",
@@ -299,10 +279,6 @@ func NewRouter(middlewares []func(http.Handler) http.Handler, routers []server.R
 
 					for i := range middlewares {
 						r.Use(middlewares[i])
-					}
-
-					if newrelicApp != nil {
-						_, handler = newrelic.WrapHandle(newrelicApp, route.Pattern, handler)
 					}
 
 					resourceName := fmt.Sprintf("%s_%s", route.Method, route.Pattern)
