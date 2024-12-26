@@ -214,7 +214,6 @@ func ObservabilityMiddleware() func(next http.Handler) http.Handler {
 				Str("path", r.URL.Path).
 				Str("remote_addr", r.RemoteAddr).
 				Str("user_agent", r.UserAgent()).
-				Str("x-request_id", middleware.GetReqID(r.Context())).
 				Msg("finished request")
 		})
 	}
