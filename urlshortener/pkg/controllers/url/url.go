@@ -11,7 +11,7 @@ import (
 	"github.com/igomez10/microservices/urlshortener/pkg/converter"
 	"github.com/igomez10/microservices/urlshortener/pkg/db"
 	"github.com/igomez10/microservices/urlshortener/pkg/tracerhelper"
-	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 )
@@ -26,34 +26,17 @@ const appName = "urlshortener"
 type URLApiService struct {
 	DB     db.Querier
 	DBConn db.DBTX
-
-	metrics newrelic.Application
 }
 
-type MetricEvent struct {
-	Alias string `json:"alias"`
-	Url   string `json:"url"`
-	IsErr bool   `json:"is_err"`
-}
-
-func (m *MetricEvent) toMap() map[string]interface{} {
-	return map[string]interface{}{
-		"alias":  m.Alias,
-		"url":    m.Url,
-		"is_err": m.IsErr,
-	}
-}
-
-func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, requestID string) (server.ImplResponse, error) {
+func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, requestID string) (serverRes server.ImplResponse, err error) {
 	ctx, span := tracerhelper.GetTracer().Start(ctx, "CreateUrl")
-	defer span.End()
-
-	event := MetricEvent{
-		Alias: newURL.Alias,
-		Url:   newURL.Url,
-	}
 	defer func() {
-		s.metrics.RecordCustomEvent("CreateUrl", event.toMap())
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+		}
+
+		span.End()
 	}()
 
 	newURLParams := db.CreateURLParams{
@@ -72,12 +55,10 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, reques
 					Message: fmt.Sprintf("url with alias %q already exists", newURL.Alias),
 					Code:    http.StatusConflict,
 				},
-			}, nil
+			}, err
 		}
 
 		// other error
-		event.IsErr = true
-		log := contexthelper.GetLoggerInContext(ctx)
 		log.Error().Err(err).Msgf("error creating url %q with alias %q", newURL.Url, newURL.Alias)
 		return server.ImplResponse{
 			Code: http.StatusInternalServerError,
@@ -85,7 +66,7 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, reques
 				Message: fmt.Sprintf("error creating url %q with alias %q", newURL.Url, newURL.Alias),
 				Code:    http.StatusInternalServerError,
 			},
-		}, nil
+		}, err
 	}
 
 	serverURL := converter.FromDBUrlToAPIUrl(res)
@@ -101,19 +82,9 @@ func (s *URLApiService) DeleteUrl(ctx context.Context, alias string, requestID s
 	defer span.End()
 
 	log := contexthelper.GetLoggerInContext(ctx)
-	event := MetricEvent{
-		Alias: alias,
-		IsErr: false,
-	}
-
-	defer func() {
-		s.metrics.RecordCustomEvent("DeleteUrl", event.toMap())
-	}()
-
 	ctx, dbspan := tracerhelper.GetTracer().Start(ctx, "db.DeleteUrl")
 	if err := s.DB.DeleteURL(ctx, s.DBConn, alias); err != nil {
 		log.Error().Err(err).Msgf("error deleting url %q", alias)
-		event.IsErr = true
 		return server.ImplResponse{
 			Code: http.StatusInternalServerError,
 			Body: server.Error{
@@ -133,19 +104,10 @@ func (s *URLApiService) GetUrl(ctx context.Context, alias string, requestID stri
 	ctx, span := tracerhelper.GetTracer().Start(ctx, "GetUrl")
 	defer span.End()
 
-	event := MetricEvent{
-		Alias: alias,
-		IsErr: false,
-	}
-	defer func() {
-		s.metrics.RecordCustomEvent("GetUrl", event.toMap())
-	}()
-
 	ctx, dbspan := tracerhelper.GetTracer().Start(ctx, "db.GetURLFromAlias")
 	shortedURL, err := s.DB.GetURLFromAlias(ctx, s.DBConn, alias)
 	dbspan.End()
 	if err != nil {
-		event.IsErr = true
 		return server.ImplResponse{
 			Code: http.StatusNotFound,
 			Body: server.Error{
@@ -170,19 +132,10 @@ func (s *URLApiService) GetUrlData(ctx context.Context, alias string, requestID 
 	ctx, span := tracerhelper.GetTracer().Start(ctx, "GetUrlData")
 	defer span.End()
 
-	event := MetricEvent{
-		Alias: alias,
-	}
-
-	defer func() {
-		s.metrics.RecordCustomEvent("GetUrlData", event.toMap())
-	}()
-
 	ctx, dbspan := tracerhelper.GetTracer().Start(ctx, "db.GetURLFromAlias")
 	shortedURL, err := s.DB.GetURLFromAlias(ctx, s.DBConn, alias)
 	dbspan.End()
 	if err != nil {
-		event.IsErr = true
 		return server.ImplResponse{
 			Code: http.StatusNotFound,
 			Body: server.Error{

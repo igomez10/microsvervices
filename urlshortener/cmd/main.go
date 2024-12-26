@@ -262,7 +262,7 @@ func NewRouter(middlewares []func(http.Handler) http.Handler, routers []server.R
 	mainRouter.Group(func(r chi.Router) {
 		mdlw := metricsMiddleware.New(metricsMiddleware.Config{
 			Recorder: prometheus.NewRecorder(prometheus.Config{}),
-			Service:  "urlshortener",
+			Service:  opts.AppName,
 		})
 
 		for _, api := range routers {
