@@ -189,13 +189,15 @@ func (w *customHTTPResponseWriter) WriteHeader(statusCode int) {
 func ObservabilityMiddleware(logger zerolog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			ctx, span := tracerhelper.GetTracer().Start(ctx, "ObservabilityMiddleware")
-			span.SetAttributes(attribute.String("x-request-id", middleware.GetReqID(ctx)))
+			ctx, span := tracerhelper.GetTracer().Start(r.Context(), "ObservabilityMiddleware")
 			defer span.End()
+
+			span.SetAttributes(attribute.String("x-request-id", middleware.GetReqID(r.Context())))
 			// Add the logger to the context
+			logger = logger.With().Str("span_id", span.SpanContext().TraceID().String()).Logger()
 			ctx = contexthelper.SetLoggerInContext(ctx, logger)
 			r = r.WithContext(ctx)
+
 			customW := &customHTTPResponseWriter{
 				ResponseWriter: w,
 			}
@@ -207,7 +209,7 @@ func ObservabilityMiddleware(logger zerolog.Logger) func(next http.Handler) http
 				Str("remote_addr", r.RemoteAddr).
 				Str("user_agent", r.UserAgent()).
 				Str("referer", r.Referer()).
-				Str("request_id", middleware.GetReqID(r.Context())).
+				Str("x-request_id", middleware.GetReqID(r.Context())).
 				Msg("finished request")
 		})
 	}
@@ -251,7 +253,11 @@ func NewMetaRouter() chi.Router {
 // string pointer saved in the context as "pattern"
 func (p *Pattern) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := contexthelper.SetRequestPatternInContext(r.Context(), p.Pattern)
+		ctx, span := tracerhelper.GetTracer().Start(r.Context(), "PatternMiddleware")
+		defer span.End()
+		span.SetAttributes(attribute.String("x-pattern", p.Pattern))
+		ctx = contexthelper.SetRequestPatternInContext(ctx, p.Pattern)
+
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

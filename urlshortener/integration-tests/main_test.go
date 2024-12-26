@@ -84,7 +84,7 @@ func TestURLLifeCycle(t *testing.T) {
 	Setup()
 	// setup url client
 	urlClientConfiguration := urlClient.NewConfiguration()
-	urlClientConfiguration.Host = "localhost:8087"
+	urlClientConfiguration.Host = "localhost:8089"
 	httpClient := getHTTPClient()
 	urlClientConfiguration.HTTPClient = httpClient
 	urlClnt = urlClient.NewAPIClient(urlClientConfiguration)
