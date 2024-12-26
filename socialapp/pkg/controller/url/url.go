@@ -123,7 +123,10 @@ func (s *URLApiService) GetUrl(ctx context.Context, alias string) (openapi.ImplR
 				},
 			}, nil
 		default:
-			log.Error().Err(err).Msg("error getting url from urlshortener service")
+			log.Error().
+				Err(err).
+				Int("status_code", res.StatusCode).
+				Msg("error getting url from urlshortener service")
 			return openapi.ImplResponse{
 				Code: http.StatusInternalServerError,
 				Body: openapi.Error{
