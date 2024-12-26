@@ -59,15 +59,15 @@ func main() {
 	}
 
 	instanceID := uuid.NewString()
-	log.Logger = log.With().
+	log.Logger = zerolog.New(os.Stderr).
+		With().
+		Caller().
 		Str("app", opts.AppName).
 		Str("instance", instanceID).
 		Timestamp().
 		Caller().
 		Logger()
 
-	// log config print stack trace
-	log.Logger = log.With().Caller().Logger()
 	// Set log level zerolog
 	if _, err := zerolog.ParseLevel(opts.logLevel); err != nil {
 		log.Fatal().Err(err).Msg("failed to parse log level")
@@ -193,16 +193,22 @@ func ObservabilityMiddleware() func(next http.Handler) http.Handler {
 			defer span.End()
 
 			span.SetAttributes(attribute.String("x-request-id", middleware.GetReqID(r.Context())))
-			// Add the logger to the context
-			reqlogger := log.With().Str("trace_id", span.SpanContext().TraceID().String()).Logger()
-			ctx = contexthelper.SetLoggerInContext(ctx, reqlogger)
+
+			logger := contexthelper.GetLoggerInContext(ctx)
+			logger.UpdateContext(func(c zerolog.Context) zerolog.Context {
+				c = c.Str("trace_id", span.SpanContext().TraceID().String())
+				c = c.Str("x-request-id", middleware.GetReqID(r.Context()))
+				return c
+			})
+
+			ctx = contexthelper.SetLoggerInContext(ctx, logger)
 			r = r.WithContext(ctx)
 
 			customW := &customHTTPResponseWriter{
 				ResponseWriter: w,
 			}
 			next.ServeHTTP(customW, r)
-			reqlogger.Info().
+			logger.Info().
 				Str("method", r.Method).
 				Int("status_code", customW.statusCode).
 				Str("path", r.URL.Path).
@@ -257,7 +263,10 @@ func (p *Pattern) Middleware(next http.Handler) http.Handler {
 		defer span.End()
 		span.SetAttributes(attribute.String("x-pattern", p.Pattern))
 
-		logger := contexthelper.GetLoggerInContext(ctx).With().Str("x-pattern", p.Pattern).Logger()
+		logger := contexthelper.GetLoggerInContext(ctx)
+		logger.UpdateContext(func(c zerolog.Context) zerolog.Context {
+			return c.Str("x-pattern", p.Pattern)
+		})
 		ctx = contexthelper.SetLoggerInContext(ctx, logger)
 		ctx = contexthelper.SetRequestPatternInContext(ctx, p.Pattern)
 

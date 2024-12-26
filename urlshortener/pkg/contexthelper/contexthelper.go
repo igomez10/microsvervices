@@ -3,6 +3,7 @@ package contexthelper
 import (
 	"context"
 	"net/http"
+	"os"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -43,7 +44,8 @@ func SetRequestIDInContext(ctx context.Context, requestID string) context.Contex
 func GetLoggerInContext(ctx context.Context) zerolog.Logger {
 	logger, ok := ctx.Value("logger").(zerolog.Logger)
 	if !ok {
-		return log.Logger
+		l := zerolog.New(os.Stderr).With().Timestamp().Logger()
+		return l
 	}
 	return logger
 }
