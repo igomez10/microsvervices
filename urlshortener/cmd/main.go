@@ -161,7 +161,7 @@ func main() {
 		middleware.RequestID,
 		middleware.RealIP,
 		middleware.Recoverer,
-		ObservabilityMiddleware(log.Logger),
+		ObservabilityMiddleware(),
 	}
 	urlRouter := NewRouter(middlewares, []server.Router{URLAPIController}, newrelicApp)
 
@@ -186,7 +186,7 @@ func (w *customHTTPResponseWriter) WriteHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
-func ObservabilityMiddleware(logger zerolog.Logger) func(next http.Handler) http.Handler {
+func ObservabilityMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx, span := tracerhelper.GetTracer().Start(r.Context(), "ObservabilityMiddleware")
@@ -194,7 +194,7 @@ func ObservabilityMiddleware(logger zerolog.Logger) func(next http.Handler) http
 
 			span.SetAttributes(attribute.String("x-request-id", middleware.GetReqID(r.Context())))
 			// Add the logger to the context
-			reqlogger := logger.With().Str("trace_id", span.SpanContext().TraceID().String()).Logger()
+			reqlogger := log.With().Str("trace_id", span.SpanContext().TraceID().String()).Logger()
 			ctx = contexthelper.SetLoggerInContext(ctx, reqlogger)
 			r = r.WithContext(ctx)
 
@@ -202,7 +202,7 @@ func ObservabilityMiddleware(logger zerolog.Logger) func(next http.Handler) http
 				ResponseWriter: w,
 			}
 			next.ServeHTTP(customW, r)
-			logger.Info().
+			reqlogger.Info().
 				Str("method", r.Method).
 				Int("status_code", customW.statusCode).
 				Str("path", r.URL.Path).
@@ -256,6 +256,10 @@ func (p *Pattern) Middleware(next http.Handler) http.Handler {
 		ctx, span := tracerhelper.GetTracer().Start(r.Context(), "PatternMiddleware")
 		defer span.End()
 		span.SetAttributes(attribute.String("x-pattern", p.Pattern))
+
+		logger := contexthelper.GetLoggerInContext(ctx).With().Str("x-pattern", p.Pattern).Logger()
+		contexthelper.SetLoggerInContext(ctx, logger)
+
 		ctx = contexthelper.SetRequestPatternInContext(ctx, p.Pattern)
 
 		r = r.WithContext(ctx)
