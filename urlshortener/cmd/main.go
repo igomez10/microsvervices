@@ -194,8 +194,8 @@ func ObservabilityMiddleware(logger zerolog.Logger) func(next http.Handler) http
 
 			span.SetAttributes(attribute.String("x-request-id", middleware.GetReqID(r.Context())))
 			// Add the logger to the context
-			logger = logger.With().Str("trace_id", span.SpanContext().TraceID().String()).Logger()
-			ctx = contexthelper.SetLoggerInContext(ctx, logger)
+			reqlogger := logger.With().Str("trace_id", span.SpanContext().TraceID().String()).Logger()
+			ctx = contexthelper.SetLoggerInContext(ctx, reqlogger)
 			r = r.WithContext(ctx)
 
 			customW := &customHTTPResponseWriter{
