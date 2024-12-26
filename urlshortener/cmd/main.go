@@ -259,7 +259,6 @@ func (p *Pattern) Middleware(next http.Handler) http.Handler {
 
 		logger := contexthelper.GetLoggerInContext(ctx).With().Str("x-pattern", p.Pattern).Logger()
 		ctx = contexthelper.SetLoggerInContext(ctx, logger)
-
 		ctx = contexthelper.SetRequestPatternInContext(ctx, p.Pattern)
 
 		r = r.WithContext(ctx)
