@@ -2,7 +2,6 @@ package url
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -52,7 +51,7 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, reques
 			return server.ImplResponse{
 				Code: http.StatusConflict,
 				Body: server.Error{
-					Message: fmt.Sprintf("url with alias %q already exists", newURL.Alias),
+					Message: `{ "message": "alias already exists" }`,
 					Code:    http.StatusConflict,
 				},
 			}, err
@@ -63,7 +62,7 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, reques
 		return server.ImplResponse{
 			Code: http.StatusInternalServerError,
 			Body: server.Error{
-				Message: fmt.Sprintf("error creating url %q with alias %q", newURL.Url, newURL.Alias),
+				Message: `{ "message": "error creating url" }`,
 				Code:    http.StatusInternalServerError,
 			},
 		}, err
