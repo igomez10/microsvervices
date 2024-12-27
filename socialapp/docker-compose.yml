@@ -340,6 +340,8 @@ services:
       - broker1
       - broker2
       - broker3
+    ports:
+      - "8095:8080"
     cpus: 0.5
     mem_limit: 512m
     logging:
