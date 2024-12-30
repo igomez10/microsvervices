@@ -51,7 +51,7 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, reques
 			return server.ImplResponse{
 				Code: http.StatusConflict,
 				Body: server.Error{
-					Message: `{ "message": "alias already exists" }`,
+					Message: "url with alias already exists",
 					Code:    http.StatusConflict,
 				},
 			}, err
@@ -62,7 +62,7 @@ func (s *URLApiService) CreateUrl(ctx context.Context, newURL server.Url, reques
 		return server.ImplResponse{
 			Code: http.StatusInternalServerError,
 			Body: server.Error{
-				Message: `{ "message": "error creating url" }`,
+				Message: "error creating url",
 				Code:    http.StatusInternalServerError,
 			},
 		}, err
